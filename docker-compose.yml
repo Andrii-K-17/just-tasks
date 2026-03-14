@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - backend
+    networks:
+      - app-net
+
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend:/var/www/html
+    ports:
+      - "8080:80"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - app-net
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-net
+
+volumes:
+  db_data:
+
+networks:
+  app-net:
+    driver: bridge
