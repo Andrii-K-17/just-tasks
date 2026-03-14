@@ -1,0 +1,6 @@
+.env
+node_modules/
+frontend/dist/
+db_data/
+Thumbs.db
+.vscode/
