@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/useAuthStore'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+onMounted(async () => {
+  await auth.init()
+  router.push(auth.isLoggedIn ? '/' : '/login')
+})
 </script>
 
 <template>
-  <HelloWorld />
+  <RouterView />
 </template>
