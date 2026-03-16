@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 const router = useRouter()
 const auth = useAuthStore()
 
-const mode = ref<'login' | 'register'>('login')
+const route = useRoute()
+
+const mode = ref<'login' | 'register'>(
+  route.query.mode === 'register' ? 'register' : 'login'
+)
 const username = ref('')
 const password = ref('')
 const error = ref('')

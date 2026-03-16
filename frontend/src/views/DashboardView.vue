@@ -43,7 +43,7 @@ onClickOutside(settings, () => {
     <div class="sticky h-13 top-0 z-50 shadow-xs w-full border-b border-emerald-100 bg-[#f9fefb]">
       <header class="flex items-center justify-between max-w-3xl mx-auto px-4 py-1.5">
         <div>
-          <h1 class="text-xl font-bold tracking-tight inline-flex items-center gap-1">
+          <h1 class="text-xl font-bold tracking-tight inline-flex items-center gap-1 cursor-pointer" @click="router.push('/')" >
             Just <span class="text-emerald-500">Tasks</span>
           </h1>
         </div>

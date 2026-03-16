@@ -8,7 +8,9 @@ const auth = useAuthStore()
 
 onMounted(async () => {
   await auth.init()
-  router.push(auth.isLoggedIn ? '/' : '/login')
+  if (auth.isLoggedIn && router.currentRoute.value.name === 'landing') {
+    router.push('/dashboard')
+  }
 })
 </script>
 
