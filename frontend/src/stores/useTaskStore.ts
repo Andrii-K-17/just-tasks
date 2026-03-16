@@ -47,6 +47,12 @@ export const useTaskStore = defineStore('tasks', () => {
     if (task) task.task_text = task_text
   }
 
+  async function editDeadline(id: number, deadline: string | null): Promise<void> {
+    await tasksApi.updateTask(id, { deadline })
+    const task = tasks.value.find(t => t.id === id)
+    if (task) task.deadline = deadline
+  }
+
   async function remove(id: number): Promise<void> {
     await tasksApi.removeTask(id)
     tasks.value = tasks.value.filter(t => t.id !== id)
@@ -57,5 +63,5 @@ export const useTaskStore = defineStore('tasks', () => {
     filter.value = 'all'
   }
 
-  return { tasks, filter, filteredTasks, stats, load, add, toggle, editText, remove, reset }
+  return { tasks, filter, filteredTasks, stats, load, add, toggle, editText, editDeadline, remove, reset }
 })
