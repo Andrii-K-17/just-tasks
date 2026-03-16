@@ -22,10 +22,21 @@ export const useTaskStore = defineStore('tasks', () => {
     return result
   })
 
-  const stats = computed(() => ({
-    total: tasks.value.length,
-    done: tasks.value.filter(t => t.is_completed).length,
-  }))
+  const stats = computed(() => {
+    const total = tasks.value.length
+    const done = tasks.value.filter(t => t.is_completed).length
+    const active = total - done
+    const today = new Date().toISOString().slice(0, 10)
+    const overdue = tasks.value.filter(t => t.deadline && !t.is_completed && t.deadline < today).length
+    const byPriority = {
+      low: tasks.value.filter(t => t.priority === 1).length,
+      medium: tasks.value.filter(t => t.priority === 2).length,
+      high: tasks.value.filter(t => t.priority === 3).length,
+    }
+    const rate = total > 0 ? Math.round((done / total) * 100) : 0
+
+    return { total, done, active, overdue, byPriority, rate }
+  })
 
   async function load(): Promise<void> {
     tasks.value = await tasksApi.fetchTasks()

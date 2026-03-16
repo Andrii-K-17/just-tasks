@@ -73,7 +73,7 @@ function onKeydown(e: KeyboardEvent) {
     <button
       @click="taskStore.toggle(task.id)"
       :class="[
-        'w-5 h-5 rounded-full border-1 flex items-center justify-center flex-shrink-0 transition-all',
+        'w-5 h-5 hover:cursor-pointer rounded-full border-1 flex items-center justify-center flex-shrink-0 transition-all',
         task.is_completed
           ? 'bg-emerald-600 border-emerald-600'
           : 'border-emerald-900 hover:border-emerald-500'

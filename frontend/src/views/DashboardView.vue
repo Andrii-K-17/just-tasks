@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
+import { Cog6ToothIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useTaskStore } from '@/stores/useTaskStore'
 import TaskForm from '@/components/TaskForm.vue'
@@ -9,11 +9,13 @@ import TaskItem from '@/components/TaskItem.vue'
 import type { FilterType } from '@/stores/useTaskStore'
 import { onClickOutside } from '@vueuse/core'
 import SearchBar from '@/components/SearchBar.vue'
+import StatsModal from '@/components/StatsModal.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const taskStore = useTaskStore()
 
+const showStats = ref(false)
 const showSettings = ref(false)
 const settings = ref(null)
 const filters: FilterType[] = ['all', 'active', 'done']
@@ -41,17 +43,26 @@ onClickOutside(settings, () => {
 <template>
   <div class="min-h-screen bg-emerald-50/30 text-black">
     <div class="sticky h-13 top-0 z-50 shadow-xs w-full border-b border-emerald-100 bg-[#f9fefb]">
-      <header class="flex items-center justify-between max-w-3xl mx-auto px-4 py-1.5">
+      <header class="flex items-center justify-between max-w-5xl mx-auto px-4 py-1.5">
         <div>
-          <h1 class="text-xl font-bold tracking-tight inline-flex items-center gap-1 cursor-pointer" @click="router.push('/')" >
+          <h1 class="text-xl font-bold tracking-tight inline-flex items-center gap-1 cursor-pointer" @click="router.push('/dashboard')" >
             Just <span class="text-emerald-500">Tasks</span>
           </h1>
         </div>
+        
+        <div class="flex gap-3">
+        <button
+          @click="showStats = true"
+          class="m-2 rounded-xl text-slate-900 hover:text-emerald-600 active:scale-x-110 hover:cursor-pointer transform transition-transform"
+        >
+          <ChartBarIcon class="w-6 h-6" />
+        </button>
+        <StatsModal v-if="showStats" @close="showStats = false" />
 
         <div class="relative" ref="settings">
           <button
             @click="showSettings = !showSettings"
-            class="m-2 rounded-xl text-slate-900 active:rotate-30 hover:cursor-pointer transform transition-transform"
+            class="m-2 rounded-xl text-slate-950 hover:text-emerald-600 active:rotate-30 hover:cursor-pointer transform transition-transform"
           >
             <Cog6ToothIcon class="w-6 h-6" />
           </button>
@@ -78,6 +89,7 @@ onClickOutside(settings, () => {
               </button>
             </div>
           </Transition>
+        </div>
         </div>
       </header>
     </div>

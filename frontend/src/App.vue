@@ -7,7 +7,6 @@ const router = useRouter()
 const auth = useAuthStore()
 
 onMounted(async () => {
-  await auth.init()
   if (auth.isLoggedIn && router.currentRoute.value.name === 'landing') {
     router.push('/dashboard')
   }

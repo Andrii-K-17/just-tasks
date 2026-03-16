@@ -2,7 +2,6 @@
 import { useRouter } from 'vue-router'
 import { 
   CheckCircleIcon,
-  BoltIcon,
   ChartPieIcon
 } from '@heroicons/vue/24/outline'
 
@@ -58,7 +57,31 @@ const router = useRouter()
 
     </main>
 
-    
+    <section class="bg-[#f9fefb] border-t border-emerald-100 py-10 px-4">
+      <div class="max-w-4xl mx-auto grid sm:grid-cols-2 md:grid-cols-2 gap-10 sm:gap-12">
+        
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <CheckCircleIcon class="w-6 h-6" />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900">Simple by design</h3>
+          <p class="text-gray-600 leading-relaxed text-sm sm:text-base">
+            A clean interface that respects your attention and time.
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <ChartPieIcon class="w-6 h-6" />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900">Clear progress</h3>
+          <p class="text-gray-600 leading-relaxed text-sm sm:text-base">
+            Understand your productivity with minimal stats.
+          </p>
+        </div>
+
+      </div>
+    </section>
   </div>
 </template>
 
