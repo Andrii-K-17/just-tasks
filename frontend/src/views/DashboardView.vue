@@ -8,6 +8,7 @@ import TaskForm from '@/components/TaskForm.vue'
 import TaskItem from '@/components/TaskItem.vue'
 import type { FilterType } from '@/stores/useTaskStore'
 import { onClickOutside } from '@vueuse/core'
+import SearchBar from '@/components/SearchBar.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -39,9 +40,8 @@ onClickOutside(settings, () => {
 
 <template>
   <div class="min-h-screen bg-emerald-50/30 text-black">
-    <div class="max-w-3xl mx-auto px-4 py-3">
-
-      <header class="flex items-center justify-between mb-3">
+    <div class="sticky h-13 top-0 z-50 shadow-xs w-full border-b border-emerald-100 bg-[#f9fefb]">
+      <header class="flex items-center justify-between max-w-3xl mx-auto px-4 py-1.5">
         <div>
           <h1 class="text-xl font-bold tracking-tight inline-flex items-center gap-1">
             Just <span class="text-emerald-500">Tasks</span>
@@ -80,11 +80,16 @@ onClickOutside(settings, () => {
           </Transition>
         </div>
       </header>
+    </div>
 
-      <TaskForm class="mb-3" />
+    <div class="max-w-3xl mx-auto px-4 py-3">
 
-      <div class="flex justify-between items-center mb-3">
-        <div class="flex gap-2">
+      <TaskForm class="mb-1" />
+
+      <div
+        class="flex justify-between flex-wrap items-center pt-2 pb-1 mb-1 sticky top-12.5 z-10 bg-[#f9fefb] border-b border-emerald-100"
+      >
+        <div class="flex gap-2 mb-1">
           <button
             v-for="filter in filters"
             :key="filter"
@@ -99,7 +104,8 @@ onClickOutside(settings, () => {
             {{ filter }}
           </button>
         </div>
-        <p class="text-sm text-gray-800 mt-0.5">
+        <SearchBar />
+        <p class="rounded-full text-xs py-1.5 px-3 border border-emerald-800 text-slate-900">
           {{ taskStore.stats.done }} / {{ taskStore.stats.total }} completed
         </p>
       </div>
@@ -146,5 +152,8 @@ onClickOutside(settings, () => {
 }
 .list-move {
     transition: transform .35s ease;
+}
+.shadow-xs {
+  box-shadow: 0 1.5px 1px rgba(130, 150, 133, 0.05);
 }
 </style>

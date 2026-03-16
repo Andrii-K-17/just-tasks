@@ -8,11 +8,18 @@ export type FilterType = 'all' | 'active' | 'done'
 export const useTaskStore = defineStore('tasks', () => {
   const tasks = ref<Task[]>([])
   const filter = ref<FilterType>('all')
+  const searchQuery = ref('')
 
   const filteredTasks = computed(() => {
-    if (filter.value === 'active') return tasks.value.filter(t => !t.is_completed)
-    if (filter.value === 'done') return tasks.value.filter(t =>  t.is_completed)
-    return tasks.value
+    let result = tasks.value
+
+    if (filter.value === 'active') result = result.filter(t => !t.is_completed)
+    if (filter.value === 'done')   result = result.filter(t =>  t.is_completed)
+
+    const query = searchQuery.value.trim().toLowerCase()
+    if (query) result = result.filter(t => t.task_text.toLowerCase().includes(query))
+
+    return result
   })
 
   const stats = computed(() => ({
@@ -61,7 +68,8 @@ export const useTaskStore = defineStore('tasks', () => {
   function reset(): void {
     tasks.value = []
     filter.value = 'all'
+    searchQuery.value = ''
   }
 
-  return { tasks, filter, filteredTasks, stats, load, add, toggle, editText, editDeadline, remove, reset }
+  return { tasks, filter, searchQuery, filteredTasks, stats, load, add, toggle, editText, editDeadline, remove, reset }
 })

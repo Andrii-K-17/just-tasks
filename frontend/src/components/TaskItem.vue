@@ -68,7 +68,7 @@ function onKeydown(e: KeyboardEvent) {
 
 <template>
   <li
-    class="flex items-center gap-3 bg-white border border-emerald-200 rounded-2xl px-4 py-3 group hover:border-emerald-700 transition-colors"
+    class="flex items-center gap-3 bg-white border border-emerald-200 rounded-2xl px-4 py-3 group hover:border-emerald-500 transition-colors"
   >
     <button
       @click="taskStore.toggle(task.id)"
