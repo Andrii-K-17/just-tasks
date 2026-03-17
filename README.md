@@ -62,7 +62,7 @@ just-tasks/
 │   ├── Dockerfile
 │   ├── .htaccess        # URL rewriting rules
 │   ├── 000-default.conf # Apache virtual host config
-│   ├── config.php       # PDO database connection & constants
+│   ├── config.php       # PDO database connection
 │   ├── index.php        # API entry point & simple router
 │   └── handlers/
 │       ├── auth.php     # Logic for login, register, and session
@@ -74,7 +74,7 @@ just-tasks/
 │   └── src/
 │       ├── main.ts      # App initialization (Pinia, Router)
 │       ├── App.vue      # Root component
-│       ├── api/         # Axios/Fetch wrappers for backend communication
+│       ├── api/         # Fetch wrappers for backend communication
 │       ├── components/
 │       │   ├── TaskForm.vue    # Input for new tasks (priority, deadline)
 │       │   ├── TaskItem.vue    # Task row with edit/delete actions
