@@ -1,16 +1,8 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 
-const router = useRouter()
 const auth = useAuthStore()
-
-onMounted(async () => {
-  if (auth.isLoggedIn && router.currentRoute.value.name === 'landing') {
-    router.push('/dashboard')
-  }
-})
+auth.init()
 </script>
 
 <template>

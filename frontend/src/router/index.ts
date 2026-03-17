@@ -35,7 +35,10 @@ router.beforeEach(async (to) => {
   await auth.init()
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) return { name: 'login' }
-  if (to.name === 'login' && auth.isLoggedIn) return { name: 'dashboard' }
+
+  if ((to.name === 'login' || to.name === 'landing') && auth.isLoggedIn) {
+    return { name: 'dashboard' }
+  }
 })
 
 export default router

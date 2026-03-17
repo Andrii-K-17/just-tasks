@@ -32,9 +32,9 @@ match (true) {
     $resource === 'me'       && $method === 'GET'    => handleMe(),
     $resource === 'tasks'    && $method === 'GET'    => getTasks($databaseConnection),
     $resource === 'tasks'    && $method === 'POST'   => createTask($databaseConnection),
+    $resource === 'tasks'    && $method === 'PUT' && $parts[2] === 'reorder' => reorderTasks($databaseConnection),
     $resource === 'tasks'    && $method === 'PUT'    => updateTask($databaseConnection, $id),
     $resource === 'tasks'    && $method === 'DELETE' => deleteTask($databaseConnection, $id),
-    $resource === 'tasks'    && $method === 'PUT' && $parts[2] === 'reorder' => reorderTasks($pdo),
     $resource === 'account'  && $method === 'DELETE' => deleteAccount($databaseConnection),
     default => (static function () {
         http_response_code(404);
