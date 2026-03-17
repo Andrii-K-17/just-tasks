@@ -8,7 +8,7 @@ function getTasks(PDO $databaseConnection): void
         'SELECT id, task_text, priority, deadline, is_completed, created_at
          FROM tasks
          WHERE user_id = ?
-         ORDER BY id DESC'
+         ORDER BY position ASC, id DESC'
     );
     $stmt->execute([$userId]);
 
@@ -132,4 +132,27 @@ function deleteTask(PDO $databaseConnection, ?int $id): void
     $stmt->execute([$id, $userId]);
 
     echo json_encode(['deleted' => $stmt->rowCount() > 0]);
+}
+
+function reorderTasks(PDO $pdo): void
+{
+    $userId = requireAuth();
+    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    $ids = array_map('intval', $data['ids'] ?? []);
+
+    if (!$ids) {
+        http_response_code(422);
+        echo json_encode(['error' => 'ids array required']);
+        return;
+    }
+
+    $stmt = $pdo->prepare(
+        'UPDATE tasks SET position = ? WHERE id = ? AND user_id = ?'
+    );
+
+    foreach (array_values($ids) as $position => $id) {
+        $stmt->execute([$position, $id, $userId]);
+    }
+
+    echo json_encode(['ok' => true]);
 }

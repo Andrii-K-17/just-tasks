@@ -39,3 +39,10 @@ export const removeTask = (id: number): Promise<void> =>
   request<void>(`/tasks/${id}`, {
     method: 'DELETE'
   })
+
+export const saveOrder = (ids: number[]): Promise<void> =>
+  request<void>('/tasks/reorder', {
+    method: 'PUT',
+    body: JSON.stringify({ ids }),
+  })
+  

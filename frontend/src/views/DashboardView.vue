@@ -5,11 +5,11 @@ import { Cog6ToothIcon, ChartBarIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useTaskStore } from '@/stores/useTaskStore'
 import TaskForm from '@/components/TaskForm.vue'
-import TaskItem from '@/components/TaskItem.vue'
 import type { FilterType } from '@/stores/useTaskStore'
 import { onClickOutside } from '@vueuse/core'
 import SearchBar from '@/components/SearchBar.vue'
 import StatsModal from '@/components/StatsModal.vue'
+import TaskList from '@/components/TaskList.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -122,20 +122,7 @@ onClickOutside(settings, () => {
         </p>
       </div>
 
-      <TransitionGroup name="list" tag="ul" class="space-y-2">
-        <TaskItem
-          v-for="task in taskStore.filteredTasks"
-          :key="task.id"
-          :task="task"
-        />
-        <li
-          v-if="taskStore.filteredTasks.length === 0"
-          key="empty"
-          class="text-center text-gray-700 py-16 text-sm select-none"
-        >
-          No tasks here
-        </li>
-      </TransitionGroup>
+      <TaskList />
 
     </div>
   </div>

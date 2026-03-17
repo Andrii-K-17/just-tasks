@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     priority TINYINT(1) DEFAULT 2,
     deadline DATE NULL,
     is_completed TINYINT(1) DEFAULT 0,
+    position INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

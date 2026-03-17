@@ -38,6 +38,11 @@ export const useTaskStore = defineStore('tasks', () => {
     return { total, done, active, overdue, byPriority, rate }
   })
 
+  async function reorder(newOrder: Task[]): Promise<void> {
+    tasks.value = newOrder
+    await tasksApi.saveOrder(newOrder.map(t => t.id))
+  }
+
   async function load(): Promise<void> {
     tasks.value = await tasksApi.fetchTasks()
   }
@@ -82,5 +87,19 @@ export const useTaskStore = defineStore('tasks', () => {
     searchQuery.value = ''
   }
 
-  return { tasks, filter, searchQuery, filteredTasks, stats, load, add, toggle, editText, editDeadline, remove, reset }
+  return {
+    tasks,
+    filter,
+    searchQuery,
+    filteredTasks,
+    stats,
+    load,
+    add,
+    toggle,
+    editText,
+    editDeadline,
+    remove,
+    reset,
+    reorder
+  }
 })
