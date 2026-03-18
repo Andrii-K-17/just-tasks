@@ -1,6 +1,6 @@
 # Just Tasks
 
-A minimalist full‑stack task manager with user authentication, priorities, and deadlines.
+**University project:** A minimalist full‑stack task manager with user authentication, priorities, and deadlines.
 
 ---
 
@@ -15,9 +15,9 @@ A minimalist full‑stack task manager with user authentication, priorities, and
 
 | layer     | technology                               |
 |-----------|------------------------------------------|
-| frontend  | vue 3 · typescript · vite · tailwind css |
-| state     | pinia · vue router 4                     |
-| backend   | php 8.2 · pdo · sessions                 |
+| frontend  | vue 3, typescript, vite, tailwind css |
+| state     | pinia, vue router 4                     |
+| backend   | php 8.2, pdo, sessions                 |
 | database  | mysql 8.0                                |
 | infra     | docker compose                           |
 
@@ -25,15 +25,19 @@ A minimalist full‑stack task manager with user authentication, priorities, and
 
 ## Features
 
-- register · login · logout · delete account
-- create · toggle · inline edit · delete tasks
-- priority levels: low / medium / high
-- deadline tracking with overdue warnings
-- live search · filter by status
-- completion statistics with progress ring
-- drag & drop task reordering
-- animated transitions
-- sql cascade delete on account removal
+User Management
+- Authentication: Secure registration, login, and logout functionality.
+- Account control: Option to permanently delete an account with SQL Cascade Delete (all associated tasks are removed automatically).
+
+Task Management
+- Full CRUD: Create, inline edit, and delete tasks.
+- Priority levels: Organize your workflow with Low, Medium, and High priorities.
+- Deadlines: Track dates with visual overdue warnings for expired tasks.
+- Organization: Custom Drag & Drop reordering for personal prioritization.
+
+Search & Analytics
+- Smart filtering: Live search and filtering by completion status.
+- Progress tracking: Completion statistics featuring a visual progress ring.
 
 ---
 
@@ -41,9 +45,11 @@ A minimalist full‑stack task manager with user authentication, priorities, and
 ```bash
 git clone https://github.com/Andrii-K-17/just-tasks.git
 cd just-tasks
-
+```
+```bash
 cp .env.example .env
-
+```
+```bash
 docker-compose up -d --build
 ```
 
