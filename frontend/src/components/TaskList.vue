@@ -36,7 +36,7 @@ const list = computed({
         <button
           class="drag-handle flex-shrink-0 cursor-grab active:cursor-grabbing
                  text-slate-600 hover:text-slate-900 transition-colors
-                 touch-none p-1 -ml-1"
+                 touch-none p-1 -ml-1 dark:text-slate-400 dark:hover:text-slate-200"
           aria-label="Drag to reorder"
         >
           <Bars3Icon class="w-4 h-4" />
@@ -47,7 +47,7 @@ const list = computed({
     <template #footer>
       <li
         v-if="taskStore.filteredTasks.length === 0"
-        class="text-center text-gray-700 py-16 text-sm select-none"
+        class="text-center text-gray-700 py-16 text-sm select-none dark:text-slate-400"
       >
         No tasks here.
       </li>
