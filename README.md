@@ -1,6 +1,6 @@
 # Just Tasks
 
-A minimalist full‑stack task manager with user authentication, priorities, and deadlines.
+A minimalist full‑stack task manager with user authentication, priorities, deadlines, categories, and dark mode.
 
 ---
 
@@ -13,7 +13,7 @@ A minimalist full‑stack task manager with user authentication, priorities, and
 
 ## Stack
 
-| layer     | technology                                 |
+| Layer     | Technology                                 |
 |-----------|--------------------------------------------|
 | frontend  | vue 3, typescript, vite, tailwind css      |
 | state     | pinia, vue router                          |
@@ -33,11 +33,15 @@ Task Management
 - CRUD: create, edit inline, delete
 - Priorities: Low / Medium / High
 - Deadlines: overdue warnings
+- Categories: organize tasks by custom labels
 - Drag & Drop reordering
 
 Search & Analytics
-- Live filtering: by status & text
+- Live filtering: by status, text, and category
 - Progress stats: visual completion ring
+
+UI & Theme
+- Dark mode: light/dark theme switching
 
 ---
 
@@ -87,7 +91,7 @@ just-tasks
 
 ---
 
-## Api
+## API
 ```
 POST   /api/register        create account
 POST   /api/login           authenticate
@@ -99,6 +103,10 @@ POST   /api/tasks           create task
 PUT    /api/tasks/:id       update task
 PUT    /api/tasks/reorder   reorder tasks
 DELETE /api/tasks/:id       delete task
+
+GET    /api/categories      list categories
+POST   /api/categories      create category
+DELETE /api/categories/:id  delete category
 
 DELETE /api/account         delete account + all tasks
 ```
