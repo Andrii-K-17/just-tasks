@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { PlusIcon } from '@heroicons/vue/24/solid'
+import { onMounted, ref } from 'vue'
+import { PlusIcon, TagIcon, CalendarIcon } from '@heroicons/vue/24/solid'
 import { useTaskStore } from '@/stores/useTaskStore'
+import { useCategoryStore } from '@/stores/useCategoryStore'
 import { useTextareaAutosize } from '@vueuse/core'
 
 const taskStore = useTaskStore()
+const categoryStore = useCategoryStore()
 
 const text = ref('')
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 useTextareaAutosize({ input: text, element: textareaRef })
 const priority = ref<1 | 2 | 3>(2)
 const deadline = ref('')
+const selectedCategoryId = ref<number | null>(null)
 const error = ref('')
+
+onMounted(() => {
+  categoryStore.load()
+})
 
 const priorityOptions = [
   { value: 1 as const, label: 'Low', color: 'text-gray-700 dark:text-gray-300' },
@@ -32,9 +39,11 @@ async function submit() {
       task_text: trimmed,
       priority: priority.value,
       deadline: deadline.value || null,
+      category_id: selectedCategoryId.value,
     })
     text.value = ''
     deadline.value = ''
+    selectedCategoryId.value = null
   } catch (e: unknown) {
     error.value = e instanceof Error ? e.message : 'Failed to add task'
   }
@@ -75,8 +84,8 @@ function handleKeyDown(event: KeyboardEvent) {
       </button>
     </div>
 
-    <div class="flex gap-2 flex-wrap">
-      <div class="flex rounded-xl overflow-hidden">
+    <div class="flex gap-2 flex-wrap items-center">
+      <div class="flex rounded-xl overflow-hidden shrink-0">
         <button
           v-for="opt in priorityOptions"
           :key="opt.value"
@@ -94,13 +103,35 @@ function handleKeyDown(event: KeyboardEvent) {
         </button>
       </div>
 
-      <input
-        v-model="deadline"
-        type="date"
-        class=" hover:cursor-pointer flex-1 min-w-0 bg-emerald-50/30 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:focus:border-emerald-500"
-      >
+      <div class="relative">
+        <CalendarIcon class="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none" />
+        <input
+          v-model="deadline"
+          type="date"
+          class="hover:cursor-pointer flex-1 min-w-0 max-w-[140px] bg-emerald-50/30 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:focus:border-emerald-500"
+        >
+      </div>
+
+      <div class="relative flex-1 min-w-[120px]">
+        <select
+          v-model="selectedCategoryId"
+          class="w-full hover:cursor-pointer appearance-none bg-emerald-50/30 border border-emerald-200 rounded-xl pl-8 pr-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:focus:border-emerald-500"
+        >
+          <option :value="null">No category</option>
+          <option v-for="category in categoryStore.categories" :key="category.id" :value="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+        <TagIcon class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none" />
+      </div>
     </div>
 
     <p v-if="error" class="text-rose-600 text-xs dark:text-rose-400">{{ error }}</p>
   </form>
 </template>
+
+<style scoped>
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+}
+</style>

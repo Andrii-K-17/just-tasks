@@ -5,10 +5,16 @@ export interface Task {
   priority: 1 | 2 | 3
   deadline: string | null
   is_completed: boolean
+  category_id: number | null
   created_at: string
 }
 
 export interface User {
   id: number
   username: string
+}
+
+export interface Category {
+  id: number
+  name: string
 }

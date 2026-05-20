@@ -18,6 +18,9 @@ export const useTaskStore = defineStore('tasks', () => {
   /** Search keyword for filtering tasks by text. */
   const searchQuery = ref('')
 
+  /** Currently selected category ID for filtering tasks. */
+  const selectedCategoryId = ref<number | null>(null)
+
   /**
    * Computes the list of tasks filtered by completion status and search query.
    */
@@ -29,9 +32,38 @@ export const useTaskStore = defineStore('tasks', () => {
 
     const query = searchQuery.value.trim().toLowerCase()
     if (query) result = result.filter(t => t.task_text.toLowerCase().includes(query))
+    
+    if (selectedCategoryId.value) result = result.filter(t => t.category_id === selectedCategoryId.value)
 
     return result
   })
+
+  /**
+  * Computes the list of tasks filtered by search query and category.
+  * Used for global statistics on the main page.
+  */
+  const allFilteredTasks = computed(() => {
+    let result = tasks.value
+    
+    const query = searchQuery.value.trim().toLowerCase()
+    if (query) result = result.filter(t => t.task_text.toLowerCase().includes(query))
+
+    if (selectedCategoryId.value) result = result.filter(t => t.category_id === selectedCategoryId.value)
+
+    return result
+  })
+
+  /**
+  * Computes the number of completed tasks from the globally filtered list.
+  */
+  const completedCount = computed(() =>
+    allFilteredTasks.value.filter(t => t.is_completed).length
+  )
+
+  /**
+  * Computes the total number of tasks from the globally filtered list.
+  */
+  const totalCount = computed(() => allFilteredTasks.value.length)
 
   /**
    * Computes task statistics, including completion rate and breakdown by priority.
@@ -74,9 +106,18 @@ export const useTaskStore = defineStore('tasks', () => {
     task_text: string
     priority: number
     deadline?: string | null
+    category_id?: number | null
   }): Promise<void> {
     const task = await tasksApi.addTask(payload)
     tasks.value.unshift(task)
+  }
+
+  async function editCategory(id: number, categoryId: number | null) {
+    const task = tasks.value.find(t => t.id === id)
+    if (task) {
+      task.category_id = categoryId
+      await tasksApi.updateTask(id, { category_id: categoryId })
+    }
   }
 
   /**
@@ -123,6 +164,7 @@ export const useTaskStore = defineStore('tasks', () => {
     tasks.value = []
     filter.value = 'all'
     searchQuery.value = ''
+    selectedCategoryId.value = null
   }
 
   return {
@@ -130,12 +172,17 @@ export const useTaskStore = defineStore('tasks', () => {
     filter,
     searchQuery,
     filteredTasks,
+    allFilteredTasks,
+    selectedCategoryId,
     stats,
+    completedCount,
+    totalCount,
     load,
     add,
     toggle,
     editText,
     editDeadline,
+    editCategory,
     remove,
     reset,
     reorder

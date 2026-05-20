@@ -23,12 +23,13 @@ export const fetchTasks = (): Promise<Task[]> =>
   request<Task[]>('/tasks')
 
 /**
- * Creates a new task.
+ * Creates a new task (with optional category).
  */
 export const addTask = (payload: {
   task_text: string
   priority: number
   deadline?: string | null
+  category_id?: number | null
 }): Promise<Task> =>
   request<Task>('/tasks', {
     method: 'POST',
@@ -36,11 +37,11 @@ export const addTask = (payload: {
   })
 
 /**
- * Updates specific fields of an existing task.
+ * Updates specific fields of an existing task (including category).
  */
 export const updateTask = (
   id: number,
-  patch: Partial<Pick<Task, 'task_text' | 'is_completed' | 'priority' | 'deadline'>>
+  patch: Partial<Pick<Task, 'task_text' | 'is_completed' | 'priority' | 'deadline' | 'category_id'>>
 ): Promise<void> =>
   request<void>(`/tasks/${id}`, {
     method: 'PUT',
