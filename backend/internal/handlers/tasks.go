@@ -32,7 +32,7 @@ func (h *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	err := h.db.Select(&tasks,
 		`SELECT id, user_id, task_text, priority,
 				TO_CHAR(deadline, 'YYYY-MM-DD') AS deadline,
-				is_completed, position, created_at
+				is_completed, position, category_id, created_at
 		 FROM tasks
 		 WHERE user_id=$1
 		 ORDER BY position ASC, id DESC`,
@@ -52,9 +52,10 @@ func (h *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
 
 // createTaskRequest represents the payload for creating a new task.
 type createTaskRequest struct {
-	TaskText string  `json:"task_text"`
-	Priority int     `json:"priority"`
-	Deadline *string `json:"deadline"`
+	TaskText   string  `json:"task_text"`
+	Priority   int     `json:"priority"`
+	Deadline   *string `json:"deadline"`
+	CategoryID *int    `json:"category_id"`
 }
 
 // CreateTask inserts a new task into the database and returns it.
@@ -82,12 +83,12 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	var task models.Task
 	err := h.db.QueryRowx(
-		`INSERT INTO tasks (user_id, task_text, priority, deadline)
-		 VALUES ($1, $2, $3, $4)
+		`INSERT INTO tasks (user_id, task_text, priority, deadline, category_id)
+		 VALUES ($1, $2, $3, $4, $5)
 		 RETURNING id, user_id, task_text, priority,
 				   TO_CHAR(deadline, 'YYYY-MM-DD') AS deadline,
-				   is_completed, position, created_at`,
-		userID, strings.TrimSpace(req.TaskText), req.Priority, deadline,
+				   is_completed, position, category_id, created_at`,
+		userID, strings.TrimSpace(req.TaskText), req.Priority, deadline, req.CategoryID,
 	).StructScan(&task)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "internal error")
@@ -150,6 +151,16 @@ func (h *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 			args = append(args, nil)
 		} else {
 			args = append(args, v.(string))
+		}
+		idx++
+	}
+
+	if v, ok := body["category_id"]; ok {
+		sets = append(sets, fmt.Sprintf("category_id=$%d", idx))
+		if v == nil {
+			args = append(args, nil)
+		} else {
+			args = append(args, int(v.(float64)))
 		}
 		idx++
 	}

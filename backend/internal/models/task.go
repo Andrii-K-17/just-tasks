@@ -10,5 +10,6 @@ type Task struct {
 	Deadline    *string   `db:"deadline"     json:"deadline"`
 	IsCompleted bool      `db:"is_completed" json:"is_completed"`
 	Position    int       `db:"position"     json:"position"`
+	CategoryID  *int      `db:"category_id"  json:"category_id"`
 	CreatedAt   time.Time `db:"created_at"   json:"created_at"`
 }

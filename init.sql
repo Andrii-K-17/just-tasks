@@ -5,6 +5,12 @@ CREATE TABLE IF NOT EXISTS users (
     created_at    TIMESTAMPTZ  DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS categories (
+    id      SERIAL       PRIMARY KEY,
+    user_id INTEGER      REFERENCES users(id) ON DELETE CASCADE,
+    name    VARCHAR(50)  NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS tasks (
     id           SERIAL       PRIMARY KEY,
     user_id      INT          NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -13,6 +19,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     deadline     DATE,
     is_completed BOOLEAN      NOT NULL DEFAULT FALSE,
     position     INT          NOT NULL DEFAULT 0,
+    category_id  INTEGER      REFERENCES categories(id) ON DELETE SET NULL,
     created_at   TIMESTAMPTZ  DEFAULT NOW()
 );
 

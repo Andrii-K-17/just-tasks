@@ -35,6 +35,7 @@ func New(
 
 	auth := handlers.NewAuthHandler(db, jwtSecret, jwtExpiry)
 	tasks := handlers.NewTaskHandler(db)
+	categories := handlers.NewCategoryHandler(db)
 
 	r.Route("/api", func(r chi.Router) {
 		// Public authentication routes.
@@ -54,6 +55,10 @@ func New(
 			r.Put("/tasks/reorder", tasks.ReorderTasks)
 			r.Put("/tasks/{id}", tasks.UpdateTask)
 			r.Delete("/tasks/{id}", tasks.DeleteTask)
+
+			r.Get("/categories", categories.GetCategories)
+			r.Post("/categories", categories.CreateCategory)
+			r.Delete("/categories/{id}", categories.DeleteCategory)
 		})
 	})
 
