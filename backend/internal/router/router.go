@@ -59,6 +59,9 @@ func New(
 			r.Get("/categories", categories.GetCategories)
 			r.Post("/categories", categories.CreateCategory)
 			r.Delete("/categories/{id}", categories.DeleteCategory)
+
+			r.Post("/tasks/{id}/collaborators", tasks.AddCollaborator)
+			r.Delete("/tasks/{id}/collaborators/{collabId}", tasks.RemoveCollaborator)
 		})
 	})
 
