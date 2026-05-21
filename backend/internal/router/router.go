@@ -19,6 +19,7 @@ func New(
 	jwtSecret string,
 	jwtExpiry time.Duration,
 	allowedOrigin string,
+	groqAPIKey string,
 ) http.Handler {
 	r := chi.NewRouter()
 
@@ -36,6 +37,7 @@ func New(
 	auth := handlers.NewAuthHandler(db, jwtSecret, jwtExpiry)
 	tasks := handlers.NewTaskHandler(db)
 	categories := handlers.NewCategoryHandler(db)
+	ai := handlers.NewAIHandler(groqAPIKey)
 
 	r.Route("/api", func(r chi.Router) {
 		// Public authentication routes.
@@ -62,6 +64,8 @@ func New(
 
 			r.Post("/tasks/{id}/collaborators", tasks.AddCollaborator)
 			r.Delete("/tasks/{id}/collaborators/{collabId}", tasks.RemoveCollaborator)
+
+			r.Post("/ai/generate", ai.GenerateTasks)
 		})
 	})
 

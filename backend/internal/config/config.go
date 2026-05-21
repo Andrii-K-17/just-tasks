@@ -18,6 +18,7 @@ type Config struct {
 	JWTExpiry     time.Duration
 	Port          string
 	AllowedOrigin string
+	GroqAPIKey    string
 }
 
 func Load() *Config {
@@ -40,6 +41,7 @@ func Load() *Config {
 		JWTExpiry:     time.Duration(hours) * time.Hour,
 		Port:          getEnv("PORT", "8080"),
 		AllowedOrigin: getEnv("ALLOWED_ORIGIN", "http://localhost:5173"),
+		GroqAPIKey:    getEnv("GROQ_API_KEY", ""),
 	}
 }
 
