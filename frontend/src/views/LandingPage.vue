@@ -4,7 +4,9 @@ import {
   CheckCircleIcon,
   ChartPieIcon,
   MoonIcon,
-  SunIcon
+  SunIcon,
+  UserGroupIcon,
+  SparklesIcon
 } from '@heroicons/vue/24/outline'
 import { useDark, useToggle } from '@vueuse/core'
 
@@ -74,7 +76,7 @@ const toggleDark = useToggle(isDark)
 
     <section class="bg-[#f9fefb] border-t border-emerald-100 dark:bg-slate-950 dark:border-slate-800 transition-colors py-10 px-4">
       <div class="max-w-4xl mx-auto grid sm:grid-cols-2 md:grid-cols-2 gap-10 sm:gap-12">
-        
+
         <div class="space-y-4">
           <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
             <CheckCircleIcon class="w-6 h-6" />
@@ -84,7 +86,7 @@ const toggleDark = useToggle(isDark)
             A clean interface that respects your attention and time.
           </p>
         </div>
-
+      
         <div class="space-y-4">
           <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
             <ChartPieIcon class="w-6 h-6" />
@@ -94,7 +96,27 @@ const toggleDark = useToggle(isDark)
             Understand your productivity with minimal stats.
           </p>
         </div>
-
+      
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
+            <UserGroupIcon class="w-6 h-6" />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">Seamless sharing</h3>
+          <p class="text-gray-600 dark:text-slate-400 leading-relaxed text-sm sm:text-base">
+            Collaborate with others on shared tasks with strict owner controls.
+          </p>
+        </div>
+      
+        <div class="space-y-4">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
+            <SparklesIcon class="w-6 h-6" />
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">AI task generator</h3>
+          <p class="text-gray-600 dark:text-slate-400 leading-relaxed text-sm sm:text-base">
+            Break down complex goals into actionable items using Groq API.
+          </p>
+        </div>
+      
       </div>
     </section>
   </div>

@@ -1,12 +1,13 @@
 # Just Tasks
 
-A minimalist full‑stack task manager with user authentication, priorities, deadlines, categories, dark mode, and task sharing with collaborators.
+A minimalist full‑stack task manager with user authentication, priorities, deadlines, categories, dark mode, task sharing, and AI‑powered task generation via Groq API.
 
 ---
 
 ## Screenshots
 
 ![Dashboard](screenshots/dashboard.png)
+![AITaskModal](screenshots/AITaskModal.png)
 ![Stats](screenshots/stats.png)
 
 ---
@@ -36,6 +37,7 @@ Task Management
 - Categories: organize tasks by custom labels
 - Drag & Drop reordering
 - Sharing: assign collaborators to tasks and manage shared notes
+- AI task generation: ✨ button sends a prompt to Groq API, generates a structured list of tasks, editable inline, then saved as a category with all tasks in one shot
 
 Search & Analytics
 - Live filtering: by status, text, and category
@@ -112,6 +114,8 @@ DELETE /api/categories/:id            delete category
 POST   /api/tasks/:id/collaborators   add collaborator to task
 DELETE /api/tasks/:id/collaborators/:collabId  remove collaborator
 
+POST   /api/ai/generate               generate tasks via Groq API
+
 DELETE /api/account                   delete account + all tasks
 ```
 
@@ -131,6 +135,8 @@ JWT_EXPIRY_HOURS=24
 
 PORT=8080
 ALLOWED_ORIGIN=http://localhost:5173
+
+GROQ_API_KEY=groq-api-key
 ```
 
 ---
