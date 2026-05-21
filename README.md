@@ -1,6 +1,6 @@
 # Just Tasks
 
-A minimalist full‑stack task manager with user authentication, priorities, deadlines, categories, and dark mode.
+A minimalist full‑stack task manager with user authentication, priorities, deadlines, categories, dark mode, and task sharing with collaborators.
 
 ---
 
@@ -35,6 +35,7 @@ Task Management
 - Deadlines: overdue warnings
 - Categories: organize tasks by custom labels
 - Drag & Drop reordering
+- Sharing: assign collaborators to tasks and manage shared notes
 
 Search & Analytics
 - Live filtering: by status, text, and category
@@ -93,22 +94,25 @@ just-tasks
 
 ## API
 ```
-POST   /api/register        create account
-POST   /api/login           authenticate
-POST   /api/logout          end session
-GET    /api/me              current user
+POST   /api/register                  create account
+POST   /api/login                     authenticate
+POST   /api/logout                    end session
+GET    /api/me                        current user
 
-GET    /api/tasks           list tasks
-POST   /api/tasks           create task
-PUT    /api/tasks/:id       update task
-PUT    /api/tasks/reorder   reorder tasks
-DELETE /api/tasks/:id       delete task
+GET    /api/tasks                     list tasks
+POST   /api/tasks                     create task
+PUT    /api/tasks/:id                 update task
+PUT    /api/tasks/reorder             reorder tasks
+DELETE /api/tasks/:id                 delete task
 
-GET    /api/categories      list categories
-POST   /api/categories      create category
-DELETE /api/categories/:id  delete category
+GET    /api/categories                list categories
+POST   /api/categories                create category
+DELETE /api/categories/:id            delete category
 
-DELETE /api/account         delete account + all tasks
+POST   /api/tasks/:id/collaborators   add collaborator to task
+DELETE /api/tasks/:id/collaborators/:collabId  remove collaborator
+
+DELETE /api/account                   delete account + all tasks
 ```
 
 ---
