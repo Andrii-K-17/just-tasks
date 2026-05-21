@@ -25,3 +25,14 @@ export interface Category {
   id: number
   name: string
 }
+
+export interface AITask {
+  text: string
+  deadline: string
+  priority: 'high' | 'medium' | 'low'
+}
+
+export interface AIGenerateResult {
+  category: string
+  tasks: AITask[]
+}

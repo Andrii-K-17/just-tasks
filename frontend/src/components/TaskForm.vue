@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { PlusIcon, TagIcon, CalendarIcon } from '@heroicons/vue/24/solid'
+import { SparklesIcon } from '@heroicons/vue/24/outline'
 import { useTaskStore } from '@/stores/useTaskStore'
 import { useCategoryStore } from '@/stores/useCategoryStore'
 import { useTextareaAutosize } from '@vueuse/core'
+import AITaskModal from '@/components/AITaskModal.vue'
 
 const taskStore = useTaskStore()
 const categoryStore = useCategoryStore()
@@ -15,6 +17,7 @@ const priority = ref<1 | 2 | 3>(2)
 const deadline = ref('')
 const selectedCategoryId = ref<number | null>(null)
 const error = ref('')
+const showAIModal = ref(false)
 
 onMounted(() => {
   categoryStore.load()
@@ -58,14 +61,22 @@ function handleKeyDown(event: KeyboardEvent) {
     submit()
   }
 }
+
+/**
+ * Resets the form fields after the AI modal successfully saves its generated tasks.
+ */
+function onAISaved() {
+  showAIModal.value = false
+  text.value = ''
+  deadline.value = ''
+  selectedCategoryId.value = null
+}
 </script>
 
 <template>
-  <form
-    @submit.prevent="submit"
-    class="bg-white border border-emerald-200 rounded-2xl p-4 space-y-3 dark:bg-slate-900 dark:border-slate-800 transition-colors"
-  >
-    <div class="flex gap-2 items-start">
+  <div class="bg-white border border-emerald-200 rounded-2xl p-4 space-y-3 dark:bg-slate-900 dark:border-slate-800 transition-colors">
+  <form @submit.prevent="submit">
+    <div class="flex gap-2 items-start mb-2">
       <textarea
         v-model="text"
         ref="textareaRef"
@@ -75,6 +86,18 @@ function handleKeyDown(event: KeyboardEvent) {
         @keydown="handleKeyDown"
         class="flex-1 bg-emerald-50/30 border border-emerald-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-gray-600 focus:outline-none focus:border-emerald-400 transition-colors resize-none overflow-hidden dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-emerald-500"
       ></textarea>
+
+      <button
+        type="button"
+        @click="showAIModal = true"
+        :disabled="!text.trim()"
+        class="bg-emerald-100 hover:bg-emerald-200 hover:cursor-pointer text-emerald-700 rounded-xl p-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-emerald-400 dark:disabled:opacity-30"
+        aria-label="Generate tasks with AI"
+        title="Generate tasks with AI"
+      >
+        <SparklesIcon class="w-6 h-6" />
+      </button>
+
       <button
         type="submit"
         class="bg-emerald-500 hover:cursor-pointer hover:bg-emerald-600 text-white rounded-xl p-2 transition-colors dark:bg-emerald-600 dark:hover:bg-emerald-500"
@@ -128,6 +151,15 @@ function handleKeyDown(event: KeyboardEvent) {
 
     <p v-if="error" class="text-rose-600 text-xs dark:text-rose-400">{{ error }}</p>
   </form>
+
+  <AITaskModal
+    v-if="showAIModal"
+    :prompt="text"
+    @close="showAIModal = false"
+    @saved="onAISaved"
+  />
+
+  </div>
 </template>
 
 <style scoped>
