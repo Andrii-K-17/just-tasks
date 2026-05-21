@@ -64,3 +64,20 @@ export const saveOrder = (ids: number[]): Promise<void> =>
     method: 'PUT',
     body: JSON.stringify({ ids }),
   })
+
+/**
+ * Adds a collaborator to a task by username.
+ */
+export const addCollaborator = (id: number, username: string): Promise<void> =>
+  request<void>(`/tasks/${id}/collaborators`, {
+    method: 'POST',
+    body: JSON.stringify({ username }),
+  })
+
+/**
+ * Removes a collaborator from a task.
+ */
+export const removeCollaborator = (id: number, collabId: number): Promise<void> =>
+  request<void>(`/tasks/${id}/collaborators/${collabId}`, {
+    method: 'DELETE'
+  })

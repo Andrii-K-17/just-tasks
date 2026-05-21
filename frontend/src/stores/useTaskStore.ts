@@ -2,13 +2,16 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { Task } from '@/types'
 import * as tasksApi from '@/api/tasks'
+import { useAuthStore } from '@/stores/useAuthStore'
 
-export type FilterType = 'all' | 'active' | 'done'
+export type FilterType = 'all' | 'active' | 'done' | 'shared'
 
 /**
  * Global store for managing tasks state, filtering, and metrics.
  */
 export const useTaskStore = defineStore('tasks', () => {
+  const authStore = useAuthStore()
+
   /** Source list of all tasks. */
   const tasks = ref<Task[]>([])
 
@@ -22,13 +25,19 @@ export const useTaskStore = defineStore('tasks', () => {
   const selectedCategoryId = ref<number | null>(null)
 
   /**
-   * Computes the list of tasks filtered by completion status and search query.
+   * Computes the list of tasks filtered by completion status, search query, and sharing state.
    */
   const filteredTasks = computed(() => {
     let result = tasks.value
 
     if (filter.value === 'active') result = result.filter(t => !t.is_completed)
     if (filter.value === 'done')   result = result.filter(t =>  t.is_completed)
+    if (filter.value === 'shared') {
+      result = result.filter(t => 
+        (t.collaborators && t.collaborators.length > 0) || 
+        (authStore.user && t.owner_name !== authStore.user.username)
+      )
+    }
 
     const query = searchQuery.value.trim().toLowerCase()
     if (query) result = result.filter(t => t.task_text.toLowerCase().includes(query))
@@ -158,6 +167,22 @@ export const useTaskStore = defineStore('tasks', () => {
   }
 
   /**
+   * Adds a collaborator to a task and reloads the store to get updated info.
+   */
+  async function addTaskCollaborator(id: number, username: string): Promise<void> {
+    await tasksApi.addCollaborator(id, username)
+    await load()
+  }
+
+  /**
+   * Removes a collaborator from a task and reloads the store.
+   */
+  async function removeTaskCollaborator(id: number, collabId: number): Promise<void> {
+    await tasksApi.removeCollaborator(id, collabId)
+    await load()
+  }
+
+  /**
    * Resets the store state to its default empty values.
    */
   function reset(): void {
@@ -184,6 +209,8 @@ export const useTaskStore = defineStore('tasks', () => {
     editDeadline,
     editCategory,
     remove,
+    addTaskCollaborator,
+    removeTaskCollaborator,
     reset,
     reorder
   }

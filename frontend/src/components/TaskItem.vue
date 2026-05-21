@@ -1,14 +1,25 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { TrashIcon, CheckIcon, TagIcon, CalendarIcon } from '@heroicons/vue/24/outline'
+import {
+  TrashIcon,
+  CheckIcon,
+  TagIcon,
+  CalendarIcon,
+  UserGroupIcon
+} from '@heroicons/vue/24/outline'
 import { useTaskStore } from '@/stores/useTaskStore'
+import { useCategoryStore } from '@/stores/useCategoryStore'
+import { useAuthStore } from '@/stores/useAuthStore'
 import type { Task } from '@/types'
 import { useTextareaAutosize, onClickOutside } from '@vueuse/core'
-import { useCategoryStore } from '@/stores/useCategoryStore'
+import TaskCollaboratorsModal from '@/components/TaskCollaboratorsModal.vue'
 
 const props = defineProps<{ task: Task }>()
 const taskStore = useTaskStore()
 const categoryStore = useCategoryStore()
+const authStore = useAuthStore()
+
+const isOwner = computed(() => authStore.user?.username === props.task.owner_name)
 
 const isEditing = ref(false)
 const editValue = ref('')
@@ -21,6 +32,8 @@ const isEditingCategory = ref(false)
 
 const deadlineCard = ref(null)
 const categoryCard = ref(null)
+
+const showCollabMenu = ref(false)
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 useTextareaAutosize({ element: textareaRef })
@@ -59,7 +72,7 @@ async function saveEdit() {
  * Initializes the deadline editing mode with the current deadline value.
  */
 function startEditDeadline() {
-  editDeadlineValue.value = props.task.deadline?? ''
+  editDeadlineValue.value = props.task.deadline ?? ''
   isEditingDeadline.value = true
 }
 
@@ -98,6 +111,10 @@ async function saveEditCategory() {
  */
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
+    if (e.shiftKey) {
+      return
+    }
+    e.preventDefault()
     if (isEditing.value) saveEdit()
     if (isEditingDeadline.value) saveEditDeadline()
   }
@@ -107,22 +124,14 @@ function onKeydown(e: KeyboardEvent) {
   }
 }
 
-onClickOutside(textareaRef, () => {
-  saveEdit()
-})
-
-onClickOutside(deadlineCard, () => {
-  saveEditDeadline()
-})
-
-onClickOutside(categoryCard, () => {
-  saveEditCategory()
-})
+onClickOutside(textareaRef, saveEdit)
+onClickOutside(deadlineCard, saveEditDeadline)
+onClickOutside(categoryCard, saveEditCategory)
 </script>
 
 <template>
   <li
-    class="flex items-center gap-3 bg-white border border-emerald-200 rounded-2xl px-4 py-3 group hover:border-emerald-500 transition-colors dark:bg-slate-900 dark:border-slate-800 dark:hover:border-emerald-400"
+    class="flex group items-center gap-3 bg-white border border-emerald-200 rounded-2xl px-4 py-3 group hover:border-emerald-500 transition-colors dark:bg-slate-900 dark:border-slate-800 dark:hover:border-emerald-400"
     @click="startEdit"
   >
     <button
@@ -175,12 +184,12 @@ onClickOutside(categoryCard, () => {
             type="date"
             @blur="saveEditDeadline"
             @keydown="onKeydown"
-            class="hover:cursor-pointer flex-1 min-w-0 max-w-[140px] bg-emerald-50/30 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:focus:border-emerald-500"
+            class="hover:cursor-pointer min-w-0 max-w-[140px] bg-emerald-50/30 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:focus:border-emerald-500"
           >
         </div>
         <div
           v-else-if="task.deadline && !isEditingDeadline"
-          class = "relative"
+          class="relative"
         >
           <CalendarIcon class="w-3.5 h-3.5 absolute top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none" />
           <span
@@ -193,7 +202,7 @@ onClickOutside(categoryCard, () => {
         <button
           v-else-if="!task.deadline && !isEditingDeadline && isEditing"
           @click="startEditDeadline"
-          class="flex-1 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:cursor-pointer min-w-0 bg-emerald-50/20 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:focus:border-emerald-500"
+          class="hover:bg-emerald-50 dark:hover:bg-slate-700 hover:cursor-pointer min-w-0 bg-emerald-50/20 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:focus:border-emerald-500"
           aria-label="Set deadline"
         >
           Set deadline
@@ -202,7 +211,7 @@ onClickOutside(categoryCard, () => {
         <div
           v-if="isEditingCategory"
           ref="categoryCard"
-          class="relative flex-1 min-w-[120px]"
+          class="relative min-w-[120px]"
         >
           <TagIcon class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none" />
           <select
@@ -232,18 +241,52 @@ onClickOutside(categoryCard, () => {
         <button
           v-else-if="(!task.category_id || !categoryStore.getById(task.category_id)) && isEditing && categoryStore.hasCategories"
           @click="startEditCategory"
-          class="flex-1 hover:cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-700 min-w-0 bg-emerald-50/20 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:focus:border-emerald-500"
+          class="hover:cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-700 min-w-0 bg-emerald-50/20 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:focus:border-emerald-500"
           aria-label="Set category"
         >
           Set category
         </button>
-      </div>
 
+        <span
+          v-if="isOwner && (props.task.collaborators?.length || 0) > 0"
+          class="px-2 py-0.5 text-xs rounded-lg border border-sky-100 bg-sky-50 text-sky-900 dark:border-sky-900 dark:bg-sky-900/40 dark:text-sky-200">
+          Shared
+        </span>
+        <span
+          v-else-if="!isOwner"
+          class="px-2 py-0.5 text-xs rounded-lg border border-sky-100 bg-sky-50 text-sky-900 dark:border-sky-900 dark:bg-sky-900/40 dark:text-sky-200">
+          Collaborator
+        </span>
+      </div>
+    </div>
+
+    <div
+      class="relative transition-all text-gray-900 hover:text-rose-600 flex-shrink-0 dark:text-slate-400 dark:hover:text-rose-400 mt-1"
+      ref="collabMenuRef"
+      @click.stop
+    >
+      <button 
+        v-if="isOwner"
+        @click="showCollabMenu = true"
+        class="hover:cursor-pointer mr-1 rounded-lg transition-all group-hover:opacity-100 text-gray-900 hover:text-emerald-600 transition-colors dark:text-slate-400 dark:hover:bg-slate-800"
+        title="Manage collaborators"
+      >
+        <UserGroupIcon class="w-5 h-5" />
+      </button>
+    
+      <TaskCollaboratorsModal
+        v-if="showCollabMenu"
+        :task="task"
+        :isOwner="isOwner"
+        @close="showCollabMenu = false"
+      />
     </div>
 
     <button
+      v-if="isOwner"
       @click.stop="taskStore.remove(task.id)"
-      class="opacity-0 hover:cursor-pointer group-hover:opacity-100 text-gray-900 hover:text-rose-600 transition-all flex-shrink-0 dark:text-slate-400 dark:hover:text-rose-400"
+      class="hover:cursor-pointer group-hover:opacity-100 text-gray-900 hover:text-rose-600 transition-all flex-shrink-0 dark:text-slate-400 dark:hover:text-rose-400"
+      :class="[ isEditing ? 'md:opacity-100' : '']"
       aria-label="Delete task"
     >
       <TrashIcon class="w-5 h-5" />

@@ -68,10 +68,10 @@ async function submit() {
           :key="m"
           @click="mode = m; error = ''"
           :class="[
-            'flex-1 py-1.5 rounded-xl text-sm font-medium hover:cursor-pointer transition-all capitalize',
+            'flex-1 py-1.5 border border-transparent rounded-xl text-sm font-medium hover:cursor-pointer transition-all capitalize',
             mode === m
-              ? 'bg-emerald-600 text-white shadow dark:bg-emerald-500'
-              : 'text-gray-600 border border-transparent hover:border-emerald-300 dark:text-slate-400 dark:hover:border-slate-700'
+              ? 'bg-emerald-600 text-white shadow dark:bg-emerald-600'
+              : 'text-gray-600 hover:border-emerald-300 dark:text-slate-400 dark:hover:border-slate-700'
           ]"
         >
           {{ m === 'login' ? 'Sign In' : 'Register' }}

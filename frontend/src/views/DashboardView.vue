@@ -31,7 +31,8 @@ const toggleDark = useToggle(isDark)
 const showStats = ref(false)
 const showSettings = ref(false)
 const settings = ref(null)
-const filters: FilterType[] = ['all', 'active', 'done']
+
+const filters: FilterType[] = ['all', 'active', 'done', 'shared']
 
 const showNewCategoryInput = ref(false)
 const newCategoryName = ref('')
@@ -150,7 +151,7 @@ onClickOutside(settings, () => {
             'px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors flex items-center gap-1.5 cursor-pointer',
             taskStore.selectedCategoryId === null
               ? 'bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-600 dark:border-emerald-600'
-              : 'border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800'
+              : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50 dark:border-slate-700/90 dark:text-emerald-500 dark:hover:bg-slate-800/50'
           ]"
         >
           All categories
@@ -217,8 +218,12 @@ onClickOutside(settings, () => {
             :class="[
               'px-3 hover:cursor-pointer py-1 rounded-full text-xs font-medium border transition-all capitalize',
               taskStore.filter === filter
-                ? 'bg-emerald-600 border-emerald-600 text-white dark:bg-emerald-600 dark:border-emerald-600'
-                : 'border-emerald-800 text-gray-800 hover:bg-emerald-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800'
+                ? (filter === 'shared'
+                    ? 'bg-sky-600 border-sky-600 text-white dark:bg-sky-600 dark:border-sky-600'
+                    : 'bg-emerald-600 border-emerald-600 text-white dark:bg-emerald-600 dark:border-emerald-600')
+                : (filter === 'shared'
+                    ? 'text-gray-800 hover:bg-sky-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-sky-800/40'
+                    : 'text-gray-800 hover:bg-emerald-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-emerald-800/40')
             ]"
           >
             {{ filter }}
