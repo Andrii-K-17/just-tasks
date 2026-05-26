@@ -44,7 +44,7 @@ export const updateTask = (
   patch: Partial<Pick<Task, 'task_text' | 'is_completed' | 'priority' | 'deadline' | 'category_id'>>
 ): Promise<void> =>
   request<void>(`/tasks/${id}`, {
-    method: 'PUT',
+    method: 'PATCH',
     body: JSON.stringify(patch),
   })
 

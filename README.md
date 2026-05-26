@@ -103,7 +103,7 @@ GET    /api/me                        current user
 
 GET    /api/tasks                     list tasks
 POST   /api/tasks                     create task
-PUT    /api/tasks/:id                 update task
+PATCH  /api/tasks/:id                 update task
 PUT    /api/tasks/reorder             reorder tasks
 DELETE /api/tasks/:id                 delete task
 

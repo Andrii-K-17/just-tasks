@@ -83,7 +83,7 @@ func (h *AIHandler) GenerateTasks(w http.ResponseWriter, r *http.Request) {
 
 	today := time.Now().Format("2006-01-02")
 	systemPrompt := fmt.Sprintf(
-		`You are a task planning assistant. Given a goal, generate a category name and a list of actionable subtasks with deadlines and priorities. Today is %s. Respond ONLY with valid JSON, no markdown, no explanation. Use this exact format:
+		`You are a task planning assistant. Given a goal, generate a category name and a list of actionable subtasks with deadlines and priorities. Today is %s. Respond ONLY with valid JSON, no markdown, no explanation. Sort tasks by deadline ascending. Use this exact format:
 {"category":"string","tasks":[{"text":"string","deadline":"YYYY-MM-DD","priority":"high|medium|low"}]}`,
 		today,
 	)

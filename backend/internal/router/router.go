@@ -28,7 +28,7 @@ func New(
 	r.Use(chimw.Timeout(30 * time.Second))
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{allowedOrigin},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           300,
@@ -55,7 +55,7 @@ func New(
 			r.Get("/tasks", tasks.GetTasks)
 			r.Post("/tasks", tasks.CreateTask)
 			r.Put("/tasks/reorder", tasks.ReorderTasks)
-			r.Put("/tasks/{id}", tasks.UpdateTask)
+			r.Patch("/tasks/{id}", tasks.UpdateTask)
 			r.Delete("/tasks/{id}", tasks.DeleteTask)
 
 			r.Get("/categories", categories.GetCategories)
