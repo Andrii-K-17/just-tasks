@@ -2,43 +2,39 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/Andrii-K-17/just-tasks/internal/middleware"
-	"github.com/Andrii-K-17/just-tasks/internal/models"
 	"github.com/Andrii-K-17/just-tasks/internal/response"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/jmoiron/sqlx"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/Andrii-K-17/just-tasks/internal/services"
 )
 
-// AuthHandler manages authentication logic, database access, and JWT configuration.
+// AuthHandler manages HTTP authentication endpoints.
 type AuthHandler struct {
-	db        *sqlx.DB
+	svc       *services.AuthService
 	jwtSecret string
 	jwtExpiry time.Duration
 }
 
 // NewAuthHandler initializes and returns a new AuthHandler.
-func NewAuthHandler(db *sqlx.DB, jwtSecret string, jwtExpiry time.Duration) *AuthHandler {
-	return &AuthHandler{db: db, jwtSecret: jwtSecret, jwtExpiry: jwtExpiry}
+func NewAuthHandler(
+	svc *services.AuthService,
+	jwtSecret string,
+	jwtExpiry time.Duration,
+) *AuthHandler {
+	return &AuthHandler{svc: svc, jwtSecret: jwtSecret, jwtExpiry: jwtExpiry}
 }
 
 // issueTokenCookie generates a JWT and sets it as an HTTP-only cookie.
-func (h *AuthHandler) issueTokenCookie(r http.ResponseWriter, userID int) error {
-	claims := jwt.MapClaims{
-		"user_id": userID,
-		"exp":     time.Now().Add(h.jwtExpiry).Unix(),
-		"iat":     time.Now().Unix(),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signed, err := token.SignedString([]byte(h.jwtSecret))
+func (h *AuthHandler) issueTokenCookie(w http.ResponseWriter, userID int) error {
+	signed, err := services.IssueJWT(userID, h.jwtSecret, h.jwtExpiry)
 	if err != nil {
 		return err
 	}
 
-	http.SetCookie(r, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    signed,
 		Path:     "/",
@@ -50,8 +46,8 @@ func (h *AuthHandler) issueTokenCookie(r http.ResponseWriter, userID int) error 
 }
 
 // clearTokenCookie removes the authentication cookie by expiring it.
-func clearTokenCookie(r http.ResponseWriter) {
-	http.SetCookie(r, &http.Cookie{
+func clearTokenCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    "",
 		Path:     "/",
@@ -80,30 +76,12 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var exists bool
-	err := h.db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM users WHERE username=$1)", req.Username)
+	user, err := h.svc.Register(req.Username, req.Password)
 	if err != nil {
-		response.Error(w, http.StatusInternalServerError, "database error")
-		return
-	}
-	if exists {
-		response.Error(w, http.StatusConflict, "this username is already taken")
-		return
-	}
-
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, "internal error")
-		return
-	}
-
-	var user models.User
-	err = h.db.QueryRowx(
-		`INSERT INTO users (username, password_hash) VALUES ($1, $2)
-		 RETURNING id, username, created_at`,
-		req.Username, string(hash),
-	).StructScan(&user)
-	if err != nil {
+		if errors.Is(err, services.ErrUsernameTaken) {
+			response.Error(w, http.StatusConflict, err.Error())
+			return
+		}
 		response.Error(w, http.StatusInternalServerError, "internal error")
 		return
 	}
@@ -127,16 +105,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user models.User
-	if err := h.db.Get(&user,
-		"SELECT id, username, password_hash FROM users WHERE username=$1", req.Username,
-	); err != nil {
-		response.Error(w, http.StatusUnauthorized, "invalid credentials")
-		return
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		response.Error(w, http.StatusUnauthorized, "invalid credentials")
+	user, err := h.svc.Login(req.Username, req.Password)
+	if err != nil {
+		if errors.Is(err, services.ErrInvalidCredentials) {
+			response.Error(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, "internal error")
 		return
 	}
 
@@ -161,10 +136,8 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
-	var user models.User
-	if err := h.db.Get(&user,
-		"SELECT id, username FROM users WHERE id=$1", userID,
-	); err != nil {
+	user, err := h.svc.GetByID(userID)
+	if err != nil {
 		response.Error(w, http.StatusNotFound, "user not found")
 		return
 	}
@@ -179,7 +152,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
-	if _, err := h.db.Exec("DELETE FROM users WHERE id=$1", userID); err != nil {
+	if err := h.svc.DeleteAccount(userID); err != nil {
 		response.Error(w, http.StatusInternalServerError, "internal error")
 		return
 	}
