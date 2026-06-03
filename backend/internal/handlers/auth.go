@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/andriik17/just-tasks/internal/middleware"
-	"github.com/andriik17/just-tasks/internal/models"
-	"github.com/andriik17/just-tasks/internal/response"
+	"github.com/Andrii-K-17/just-tasks/internal/middleware"
+	"github.com/Andrii-K-17/just-tasks/internal/models"
+	"github.com/Andrii-K-17/just-tasks/internal/response"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
@@ -83,8 +83,8 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var exists bool
 	err := h.db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM users WHERE username=$1)", req.Username)
 	if err != nil {
-	    response.Error(w, http.StatusInternalServerError, "database error")
-	    return
+		response.Error(w, http.StatusInternalServerError, "database error")
+		return
 	}
 	if exists {
 		response.Error(w, http.StatusConflict, "this username is already taken")

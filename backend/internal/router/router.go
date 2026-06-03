@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/andriik17/just-tasks/internal/handlers"
-	"github.com/andriik17/just-tasks/internal/middleware"
+	"github.com/Andrii-K-17/just-tasks/internal/handlers"
+	"github.com/Andrii-K-17/just-tasks/internal/middleware"
 )
 
 // New initializes and configures the main application router.

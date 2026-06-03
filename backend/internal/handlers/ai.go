@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/andriik17/just-tasks/internal/response"
+	"github.com/Andrii-K-17/just-tasks/internal/response"
 )
 
 // AIHandler manages AI-powered task generation via the Groq API.

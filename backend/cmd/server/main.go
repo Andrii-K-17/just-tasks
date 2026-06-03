@@ -11,9 +11,9 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/andriik17/just-tasks/internal/config"
-	"github.com/andriik17/just-tasks/internal/db"
-	"github.com/andriik17/just-tasks/internal/router"
+	"github.com/Andrii-K-17/just-tasks/internal/config"
+	"github.com/Andrii-K-17/just-tasks/internal/db"
+	"github.com/Andrii-K-17/just-tasks/internal/router"
 )
 
 // main initializes logging, loads configuration, connects to the database,

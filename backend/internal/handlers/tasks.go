@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/andriik17/just-tasks/internal/middleware"
-	"github.com/andriik17/just-tasks/internal/models"
-	"github.com/andriik17/just-tasks/internal/response"
+	"github.com/Andrii-K-17/just-tasks/internal/middleware"
+	"github.com/Andrii-K-17/just-tasks/internal/models"
+	"github.com/Andrii-K-17/just-tasks/internal/response"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 )

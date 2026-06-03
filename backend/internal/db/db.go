@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 
-	"github.com/andriik17/just-tasks/internal/config"
+	"github.com/Andrii-K-17/just-tasks/internal/config"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
