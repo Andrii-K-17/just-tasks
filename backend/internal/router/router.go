@@ -37,11 +37,12 @@ func New(
 	authSvc := services.NewAuthService(db)
 	taskSvc := services.NewTaskService(db)
 	categorySvc := services.NewCategoryService(db)
+	aiSvc := services.NewAIService(groqAPIKey)
 
 	auth := handlers.NewAuthHandler(authSvc, jwtSecret, jwtExpiry)
 	tasks := handlers.NewTaskHandler(taskSvc)
 	categories := handlers.NewCategoryHandler(categorySvc)
-	ai := handlers.NewAIHandler(groqAPIKey)
+	ai := handlers.NewAIHandler(aiSvc)
 
 	r.Route("/api", func(r chi.Router) {
 		// Public authentication routes.
