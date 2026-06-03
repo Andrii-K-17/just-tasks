@@ -7,35 +7,29 @@ import (
 	"strings"
 
 	"github.com/Andrii-K-17/just-tasks/internal/middleware"
-	"github.com/Andrii-K-17/just-tasks/internal/models"
 	"github.com/Andrii-K-17/just-tasks/internal/response"
+	"github.com/Andrii-K-17/just-tasks/internal/services"
 	"github.com/go-chi/chi/v5"
-	"github.com/jmoiron/sqlx"
 )
 
-// CategoryHandler manages category CRUD operations for tasks.
+// CategoryHandler manages category HTTP endpoints.
 type CategoryHandler struct {
-	db *sqlx.DB
+	svc *services.CategoryService
 }
 
 // NewCategoryHandler initializes and returns a new CategoryHandler.
-func NewCategoryHandler(db *sqlx.DB) *CategoryHandler {
-	return &CategoryHandler{db: db}
+func NewCategoryHandler(svc *services.CategoryService) *CategoryHandler {
+	return &CategoryHandler{svc: svc}
 }
 
 // GetCategories retrieves all categories belonging to the authenticated user.
 func (h *CategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
-	var categories []models.Category
-	err := h.db.Select(&categories, "SELECT id, name FROM categories WHERE user_id=$1 ORDER BY id ASC", userID)
+	categories, err := h.svc.GetAll(userID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "internal error")
 		return
-	}
-
-	if categories == nil {
-		categories = []models.Category{}
 	}
 
 	response.JSON(w, http.StatusOK, categories)
@@ -62,11 +56,7 @@ func (h *CategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	var category models.Category
-	err := h.db.QueryRowx(
-		"INSERT INTO categories (user_id, name) VALUES ($1, $2) RETURNING id, name",
-		userID, name,
-	).StructScan(&category)
+	category, err := h.svc.Create(userID, name)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "internal error")
 		return
@@ -85,17 +75,11 @@ func (h *CategoryHandler) DeleteCategory(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	res, err := h.db.Exec("DELETE FROM categories WHERE id=$1 AND user_id=$2", id, userID)
+	deleted, err := h.svc.Delete(userID, id)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "internal error")
 		return
 	}
 
-	n, err := res.RowsAffected()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, "could not determine affected rows")
-		return
-	}
-
-	response.JSON(w, http.StatusOK, map[string]bool{"deleted": n > 0})
+	response.JSON(w, http.StatusOK, map[string]bool{"deleted": deleted})
 }
