@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Andrii-K-17/just-tasks/internal/handlers"
+	"github.com/Andrii-K-17/just-tasks/internal/middleware"
+	"github.com/Andrii-K-17/just-tasks/internal/services"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/jmoiron/sqlx"
-
-	"github.com/Andrii-K-17/just-tasks/internal/handlers"
-	"github.com/Andrii-K-17/just-tasks/internal/middleware"
 )
 
 // New initializes and configures the main application router.
@@ -34,9 +34,13 @@ func New(
 		MaxAge:           300,
 	}))
 
-	auth := handlers.NewAuthHandler(db, jwtSecret, jwtExpiry)
-	tasks := handlers.NewTaskHandler(db)
-	categories := handlers.NewCategoryHandler(db)
+	authSvc := services.NewAuthService(db)
+	taskSvc := services.NewTaskService(db)
+	categorySvc := services.NewCategoryService(db)
+
+	auth := handlers.NewAuthHandler(authSvc, jwtSecret, jwtExpiry)
+	tasks := handlers.NewTaskHandler(taskSvc)
+	categories := handlers.NewCategoryHandler(categorySvc)
 	ai := handlers.NewAIHandler(groqAPIKey)
 
 	r.Route("/api", func(r chi.Router) {
