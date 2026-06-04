@@ -77,7 +77,8 @@ just-tasks
 │       ├── middleware/       # JWT auth, logging, etc.
 │       ├── models/           # Data models & structs
 │       ├── response/         # Standardized API responses
-│       └── router/           # Route definitions
+│       ├── router/           # Route definitions
+│       └── services/         # Business logic layer
 │
 ├── frontend/                 # Vue 3 + TypeScript frontend
 │   └── src/
