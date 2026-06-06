@@ -76,6 +76,7 @@ just-tasks
 │       ├── handlers/         # HTTP request handlers
 │       ├── middleware/       # JWT auth, logging, etc.
 │       ├── models/           # Data models & structs
+│       ├── repository/       # Persistence layer
 │       ├── response/         # Standardized API responses
 │       ├── router/           # Route definitions
 │       └── services/         # Business logic layer

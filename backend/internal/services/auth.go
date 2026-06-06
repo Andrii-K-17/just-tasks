@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/Andrii-K-17/just-tasks/internal/models"
-	"github.com/jmoiron/sqlx"
+	"github.com/Andrii-K-17/just-tasks/internal/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,20 +16,18 @@ var ErrInvalidCredentials = errors.New("invalid credentials")
 
 // AuthService handles user registration, login, and account management.
 type AuthService struct {
-	db *sqlx.DB
+	repo repository.UserRepository
 }
 
 // NewAuthService initializes and returns a new AuthService.
-func NewAuthService(db *sqlx.DB) *AuthService {
-	return &AuthService{db: db}
+func NewAuthService(repo repository.UserRepository) *AuthService {
+	return &AuthService{repo: repo}
 }
 
 // Register validates uniqueness, hashes the password, and creates a new user.
 func (s *AuthService) Register(username, password string) (*models.User, error) {
-	var exists bool
-	if err := s.db.Get(&exists,
-		"SELECT EXISTS(SELECT 1 FROM users WHERE username=$1)", username,
-	); err != nil {
+	exists, err := s.repo.ExistsByUsername(username)
+	if err != nil {
 		return nil, err
 	}
 	if exists {
@@ -41,25 +39,13 @@ func (s *AuthService) Register(username, password string) (*models.User, error) 
 		return nil, err
 	}
 
-	var user models.User
-	err = s.db.QueryRowx(
-		`INSERT INTO users (username, password_hash) VALUES ($1, $2)
-		 RETURNING id, username, created_at`,
-		username, string(hash),
-	).StructScan(&user)
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
+	return s.repo.Create(username, string(hash))
 }
 
 // Login verifies credentials and returns the authenticated user.
 func (s *AuthService) Login(username, password string) (*models.User, error) {
-	var user models.User
-	if err := s.db.Get(&user,
-		"SELECT id, username, password_hash FROM users WHERE username=$1", username,
-	); err != nil {
+	user, err := s.repo.FindByUsername(username)
+	if err != nil {
 		return nil, ErrInvalidCredentials
 	}
 
@@ -69,22 +55,15 @@ func (s *AuthService) Login(username, password string) (*models.User, error) {
 		return nil, ErrInvalidCredentials
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 // GetByID fetches a user by their primary key.
 func (s *AuthService) GetByID(id int) (*models.User, error) {
-	var user models.User
-	if err := s.db.Get(&user,
-		"SELECT id, username FROM users WHERE id=$1", id,
-	); err != nil {
-		return nil, err
-	}
-	return &user, nil
+	return s.repo.FindByID(id)
 }
 
 // DeleteAccount removes a user record from the database.
 func (s *AuthService) DeleteAccount(userID int) error {
-	_, err := s.db.Exec("DELETE FROM users WHERE id=$1", userID)
-	return err
+	return s.repo.Delete(userID)
 }

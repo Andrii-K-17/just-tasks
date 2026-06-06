@@ -6,6 +6,7 @@ import (
 
 	"github.com/Andrii-K-17/just-tasks/internal/handlers"
 	"github.com/Andrii-K-17/just-tasks/internal/middleware"
+	"github.com/Andrii-K-17/just-tasks/internal/repository"
 	"github.com/Andrii-K-17/just-tasks/internal/services"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
@@ -34,9 +35,13 @@ func New(
 		MaxAge:           300,
 	}))
 
-	authSvc := services.NewAuthService(db)
-	taskSvc := services.NewTaskService(db)
-	categorySvc := services.NewCategoryService(db)
+	userRepo := repository.NewUserRepository(db)
+	taskRepo := repository.NewTaskRepository(db)
+	categoryRepo := repository.NewCategoryRepository(db)
+
+	authSvc := services.NewAuthService(userRepo)
+	taskSvc := services.NewTaskService(taskRepo)
+	categorySvc := services.NewCategoryService(categoryRepo)
 	aiSvc := services.NewAIService(groqAPIKey)
 
 	auth := handlers.NewAuthHandler(authSvc, jwtSecret, jwtExpiry)
