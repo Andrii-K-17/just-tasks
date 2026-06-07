@@ -7,12 +7,13 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build \
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux go build \
     -ldflags="-w -s" \
     -o /bin/server \
     ./cmd/server
 
-FROM alpine:3.19
+FROM alpine:3.23
 
 RUN apk add --no-cache ca-certificates tzdata
 
