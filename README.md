@@ -21,6 +21,7 @@ A minimalist full‑stack task manager with user authentication, priorities, dea
 | backend   | go, chi, sqlx, golang-jwt, bcrypt          |
 | database  | postgresql                                 |
 | infra     | docker compose                             |
+| testing   | testify, testcontainers-go                 |
 
 ---
 
@@ -145,4 +146,4 @@ GROQ_API_KEY=groq-api-key
 
 ## License
 
-mit
+This project is licensed under the [MIT License](LICENSE).
