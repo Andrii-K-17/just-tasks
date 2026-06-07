@@ -258,7 +258,9 @@ func (r *pgTaskRepository) Reorder(userID int, ids []int) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() {
+		_ = tx.Rollback()
+	}()
 
 	stmt, err := tx.Prepare(`
 		UPDATE tasks
@@ -271,7 +273,9 @@ func (r *pgTaskRepository) Reorder(userID int, ids []int) error {
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer func() {
+		_ = stmt.Close()
+	}()
 
 	for pos, id := range ids {
 		if _, err := stmt.Exec(pos, id, userID); err != nil {

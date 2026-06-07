@@ -33,7 +33,9 @@ func main() {
 		slog.Error("failed to connect to database", "error", err)
 		os.Exit(1)
 	}
-	defer database.Close()
+	defer func() {
+		_ = database.Close()
+	}()
 	slog.Info("database connected", "host", cfg.DBHost, "name", cfg.DBName)
 
 	handler := router.New(database, cfg.JWTSecret, cfg.JWTExpiry, cfg.AllowedOrigin, cfg.GroqAPIKey)

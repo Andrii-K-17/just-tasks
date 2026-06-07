@@ -109,7 +109,9 @@ func (s *AIService) GenerateTasks(ctx context.Context, text, today string) (*AIG
 	if err != nil {
 		return nil, fmt.Errorf("failed to reach AI service: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
