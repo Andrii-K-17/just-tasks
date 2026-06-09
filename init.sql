@@ -31,3 +31,13 @@ CREATE TABLE IF NOT EXISTS task_collaborators (
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     PRIMARY KEY (task_id, user_id)
 );
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id         SERIAL       PRIMARY KEY,
+    user_id    INT          NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash TEXT         NOT NULL UNIQUE,
+    expires_at TIMESTAMPTZ  NOT NULL,
+    created_at TIMESTAMPTZ  DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user_id ON refresh_tokens(user_id);
