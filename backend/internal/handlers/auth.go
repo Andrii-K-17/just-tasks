@@ -24,33 +24,46 @@ func NewAuthHandler(
 	jwtSecret string,
 	jwtExpiry time.Duration,
 ) *AuthHandler {
-	return &AuthHandler{svc: svc, jwtSecret: jwtSecret, jwtExpiry: jwtExpiry}
+	return &AuthHandler{
+		svc:       svc,
+		jwtSecret: jwtSecret,
+		jwtExpiry: jwtExpiry,
+	}
 }
 
-// issueTokenCookie generates a JWT and sets it as an HTTP-only cookie.
-func (h *AuthHandler) issueTokenCookie(w http.ResponseWriter, userID int) error {
-	signed, err := services.IssueJWT(userID, h.jwtSecret, h.jwtExpiry)
-	if err != nil {
-		return err
-	}
-
+// issueTokenCookies sets both the access JWT and refresh token as HTTP-only cookies.
+func (h *AuthHandler) issueTokenCookies(w http.ResponseWriter, pair *services.TokenPair) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
-		Value:    signed,
+		Value:    pair.AccessToken,
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int(h.jwtExpiry.Seconds()),
 	})
-	return nil
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    pair.RefreshToken,
+		Path:     "/api/refresh",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   int(services.RefreshExpiry.Seconds()),
+	})
 }
 
-// clearTokenCookie removes the authentication cookie by expiring it.
-func clearTokenCookie(w http.ResponseWriter) {
+// clearTokenCookies removes both authentication cookies by expiring them.
+func clearTokenCookies(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    "",
 		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/api/refresh",
 		HttpOnly: true,
 		MaxAge:   -1,
 	})
@@ -76,7 +89,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.svc.Register(req.Username, req.Password)
+	user, pair, err := h.svc.Register(req.Username, req.Password, h.jwtSecret, h.jwtExpiry)
 	if err != nil {
 		if errors.Is(err, services.ErrUsernameTaken) {
 			response.Error(w, http.StatusConflict, err.Error())
@@ -86,10 +99,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.issueTokenCookie(w, user.ID); err != nil {
-		response.Error(w, http.StatusInternalServerError, "internal error")
-		return
-	}
+	h.issueTokenCookies(w, pair)
 
 	response.JSON(w, http.StatusCreated, map[string]any{
 		"id":       user.ID,
@@ -97,7 +107,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Login authenticates a user and provides a session cookie.
+// Login authenticates a user and provides session cookies.
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req authRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -105,7 +115,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.svc.Login(req.Username, req.Password)
+	user, pair, err := h.svc.Login(req.Username, req.Password, h.jwtSecret, h.jwtExpiry)
 	if err != nil {
 		if errors.Is(err, services.ErrInvalidCredentials) {
 			response.Error(w, http.StatusUnauthorized, err.Error())
@@ -115,10 +125,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.issueTokenCookie(w, user.ID); err != nil {
-		response.Error(w, http.StatusInternalServerError, "internal error")
-		return
-	}
+	h.issueTokenCookies(w, pair)
 
 	response.JSON(w, http.StatusOK, map[string]any{
 		"id":       user.ID,
@@ -126,9 +133,32 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Logout clears the user session cookie.
+// Refresh validates the refresh token cookie, rotates it, and issues a new token pair.
+func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "missing refresh token")
+		return
+	}
+
+	pair, err := h.svc.Refresh(cookie.Value, h.jwtSecret, h.jwtExpiry)
+	if err != nil {
+		clearTokenCookies(w)
+		response.Error(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	h.issueTokenCookies(w, pair)
+	response.JSON(w, http.StatusOK, map[string]string{"message": "refreshed"})
+}
+
+// Logout clears the user session cookies and invalidates the refresh token.
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
-	clearTokenCookie(w)
+	cookie, err := r.Cookie("refresh_token")
+	if err == nil {
+		_ = h.svc.Logout(cookie.Value)
+	}
+	clearTokenCookies(w)
 	response.JSON(w, http.StatusOK, map[string]string{"message": "logged out"})
 }
 
@@ -152,11 +182,16 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
+	cookie, err := r.Cookie("refresh_token")
+	if err == nil {
+		_ = h.svc.Logout(cookie.Value)
+	}
+
 	if err := h.svc.DeleteAccount(userID); err != nil {
 		response.Error(w, http.StatusInternalServerError, "internal error")
 		return
 	}
 
-	clearTokenCookie(w)
+	clearTokenCookies(w)
 	response.JSON(w, http.StatusOK, map[string]string{"message": "account deleted successfully"})
 }
