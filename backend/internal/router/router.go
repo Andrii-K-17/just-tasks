@@ -38,8 +38,9 @@ func New(
 	userRepo := repository.NewUserRepository(db)
 	taskRepo := repository.NewTaskRepository(db)
 	categoryRepo := repository.NewCategoryRepository(db)
+	refreshTokenRepo := repository.NewRefreshTokenRepository(db)
 
-	authSvc := services.NewAuthService(userRepo)
+	authSvc := services.NewAuthService(userRepo, refreshTokenRepo)
 	taskSvc := services.NewTaskService(taskRepo)
 	categorySvc := services.NewCategoryService(categoryRepo)
 	aiSvc := services.NewAIService(groqAPIKey)
@@ -54,6 +55,7 @@ func New(
 		r.Post("/register", auth.Register)
 		r.Post("/login", auth.Login)
 		r.Post("/logout", auth.Logout)
+		r.Post("/refresh", auth.Refresh)
 
 		// Protected routes requiring JWT authentication.
 		r.Group(func(r chi.Router) {
