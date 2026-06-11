@@ -13,9 +13,11 @@ import (
 
 // AuthHandler manages HTTP authentication endpoints.
 type AuthHandler struct {
-	svc       *services.AuthService
-	jwtSecret string
-	jwtExpiry time.Duration
+	svc           *services.AuthService
+	jwtSecret     string
+	jwtExpiry     time.Duration
+	refreshExpiry time.Duration
+	cookieSecure  bool
 }
 
 // NewAuthHandler initializes and returns a new AuthHandler.
@@ -23,11 +25,15 @@ func NewAuthHandler(
 	svc *services.AuthService,
 	jwtSecret string,
 	jwtExpiry time.Duration,
+	refreshExpiry time.Duration,
+	cookieSecure bool,
 ) *AuthHandler {
 	return &AuthHandler{
-		svc:       svc,
-		jwtSecret: jwtSecret,
-		jwtExpiry: jwtExpiry,
+		svc:           svc,
+		jwtSecret:     jwtSecret,
+		jwtExpiry:     jwtExpiry,
+		refreshExpiry: refreshExpiry,
+		cookieSecure:  cookieSecure,
 	}
 }
 
@@ -38,6 +44,7 @@ func (h *AuthHandler) issueTokenCookies(w http.ResponseWriter, pair *services.To
 		Value:    pair.AccessToken,
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   h.cookieSecure,
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int(h.jwtExpiry.Seconds()),
 	})
@@ -46,18 +53,21 @@ func (h *AuthHandler) issueTokenCookies(w http.ResponseWriter, pair *services.To
 		Value:    pair.RefreshToken,
 		Path:     "/api/refresh",
 		HttpOnly: true,
+		Secure:   h.cookieSecure,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(services.RefreshExpiry.Seconds()),
+		MaxAge:   int(h.refreshExpiry.Seconds()),
 	})
 }
 
 // clearTokenCookies removes both authentication cookies by expiring them.
-func clearTokenCookies(w http.ResponseWriter) {
+func (h *AuthHandler) clearTokenCookies(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   h.cookieSecure,
+		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
 	})
 	http.SetCookie(w, &http.Cookie{
@@ -65,6 +75,8 @@ func clearTokenCookies(w http.ResponseWriter) {
 		Value:    "",
 		Path:     "/api/refresh",
 		HttpOnly: true,
+		Secure:   h.cookieSecure,
+		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
 	})
 }
@@ -89,7 +101,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, pair, err := h.svc.Register(req.Username, req.Password, h.jwtSecret, h.jwtExpiry)
+	user, pair, err := h.svc.Register(req.Username, req.Password, h.jwtSecret, h.jwtExpiry, h.refreshExpiry)
 	if err != nil {
 		if errors.Is(err, services.ErrUsernameTaken) {
 			response.Error(w, http.StatusConflict, err.Error())
@@ -115,7 +127,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, pair, err := h.svc.Login(req.Username, req.Password, h.jwtSecret, h.jwtExpiry)
+	user, pair, err := h.svc.Login(req.Username, req.Password, h.jwtSecret, h.jwtExpiry, h.refreshExpiry)
 	if err != nil {
 		if errors.Is(err, services.ErrInvalidCredentials) {
 			response.Error(w, http.StatusUnauthorized, err.Error())
@@ -141,9 +153,9 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pair, err := h.svc.Refresh(cookie.Value, h.jwtSecret, h.jwtExpiry)
+	pair, err := h.svc.Refresh(cookie.Value, h.jwtSecret, h.jwtExpiry, h.refreshExpiry)
 	if err != nil {
-		clearTokenCookies(w)
+		h.clearTokenCookies(w)
 		response.Error(w, http.StatusUnauthorized, err.Error())
 		return
 	}
@@ -158,7 +170,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		_ = h.svc.Logout(cookie.Value)
 	}
-	clearTokenCookies(w)
+	h.clearTokenCookies(w)
 	response.JSON(w, http.StatusOK, map[string]string{"message": "logged out"})
 }
 
@@ -192,6 +204,6 @@ func (h *AuthHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clearTokenCookies(w)
+	h.clearTokenCookies(w)
 	response.JSON(w, http.StatusOK, map[string]string{"message": "account deleted successfully"})
 }

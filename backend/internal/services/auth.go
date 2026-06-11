@@ -18,9 +18,6 @@ var ErrInvalidCredentials = errors.New("invalid credentials")
 // ErrInvalidRefreshToken is returned when a refresh token is missing, expired, or already used.
 var ErrInvalidRefreshToken = errors.New("invalid or expired refresh token")
 
-// RefreshExpiry is the lifetime of a refresh token.
-const RefreshExpiry = 30 * 24 * time.Hour
-
 // TokenPair holds both the access JWT and the opaque refresh token.
 type TokenPair struct {
 	AccessToken  string
@@ -39,7 +36,7 @@ func NewAuthService(repo repository.UserRepository, refreshRepo repository.Refre
 }
 
 // issueTokenPair creates an access JWT and a refresh token for the given user.
-func (s *AuthService) issueTokenPair(userID int, jwtSecret string, jwtExpiry time.Duration) (*TokenPair, error) {
+func (s *AuthService) issueTokenPair(userID int, jwtSecret string, jwtExpiry time.Duration, refreshExpiry time.Duration) (*TokenPair, error) {
 	accessToken, err := IssueJWT(userID, jwtSecret, jwtExpiry)
 	if err != nil {
 		return nil, err
@@ -51,7 +48,7 @@ func (s *AuthService) issueTokenPair(userID int, jwtSecret string, jwtExpiry tim
 	}
 
 	tokenHash := HashRefreshToken(rawRefresh)
-	expiresAt := time.Now().Add(RefreshExpiry)
+	expiresAt := time.Now().Add(refreshExpiry)
 
 	if _, err := s.refreshRepo.Create(userID, tokenHash, expiresAt); err != nil {
 		return nil, err
@@ -64,7 +61,7 @@ func (s *AuthService) issueTokenPair(userID int, jwtSecret string, jwtExpiry tim
 }
 
 // Register validates uniqueness, hashes the password, and creates a new user.
-func (s *AuthService) Register(username, password, jwtSecret string, jwtExpiry time.Duration) (*models.User, *TokenPair, error) {
+func (s *AuthService) Register(username, password, jwtSecret string, jwtExpiry time.Duration, refreshExpiry time.Duration) (*models.User, *TokenPair, error) {
 	exists, err := s.repo.ExistsByUsername(username)
 	if err != nil {
 		return nil, nil, err
@@ -83,7 +80,7 @@ func (s *AuthService) Register(username, password, jwtSecret string, jwtExpiry t
 		return nil, nil, err
 	}
 
-	pair, err := s.issueTokenPair(user.ID, jwtSecret, jwtExpiry)
+	pair, err := s.issueTokenPair(user.ID, jwtSecret, jwtExpiry, refreshExpiry)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -92,7 +89,7 @@ func (s *AuthService) Register(username, password, jwtSecret string, jwtExpiry t
 }
 
 // Login verifies credentials and returns the authenticated user with a token pair.
-func (s *AuthService) Login(username, password, jwtSecret string, jwtExpiry time.Duration) (*models.User, *TokenPair, error) {
+func (s *AuthService) Login(username, password, jwtSecret string, jwtExpiry time.Duration, refreshExpiry time.Duration) (*models.User, *TokenPair, error) {
 	user, err := s.repo.FindByUsername(username)
 	if err != nil {
 		return nil, nil, ErrInvalidCredentials
@@ -104,7 +101,7 @@ func (s *AuthService) Login(username, password, jwtSecret string, jwtExpiry time
 		return nil, nil, ErrInvalidCredentials
 	}
 
-	pair, err := s.issueTokenPair(user.ID, jwtSecret, jwtExpiry)
+	pair, err := s.issueTokenPair(user.ID, jwtSecret, jwtExpiry, refreshExpiry)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -113,7 +110,7 @@ func (s *AuthService) Login(username, password, jwtSecret string, jwtExpiry time
 }
 
 // Refresh validates the incoming refresh token, rotates it, and returns a new token pair.
-func (s *AuthService) Refresh(rawToken, jwtSecret string, jwtExpiry time.Duration) (*TokenPair, error) {
+func (s *AuthService) Refresh(rawToken, jwtSecret string, jwtExpiry time.Duration, refreshExpiry time.Duration) (*TokenPair, error) {
 	tokenHash := HashRefreshToken(rawToken)
 
 	stored, err := s.refreshRepo.FindByTokenHash(tokenHash)
@@ -129,7 +126,7 @@ func (s *AuthService) Refresh(rawToken, jwtSecret string, jwtExpiry time.Duratio
 		return nil, ErrInvalidRefreshToken
 	}
 
-	return s.issueTokenPair(stored.UserID, jwtSecret, jwtExpiry)
+	return s.issueTokenPair(stored.UserID, jwtSecret, jwtExpiry, refreshExpiry)
 }
 
 // Logout removes the given refresh token from the store.

@@ -8,40 +8,64 @@ import (
 )
 
 type Config struct {
-	DBHost        string
-	DBPort        string
-	DBName        string
-	DBUser        string
-	DBPassword    string
-	DBSSLMode     string
-	JWTSecret     string
-	JWTExpiry     time.Duration
+	Env           string
 	Port          string
 	AllowedOrigin string
 	GroqAPIKey    string
+
+	// Database
+	DBHost     string
+	DBPort     string
+	DBName     string
+	DBUser     string
+	DBPassword string
+	DBSSLMode  string
+
+	// Auth
+	JWTSecret     string
+	JWTExpiry     time.Duration
+	RefreshExpiry time.Duration
 }
 
-func Load() *Config {
-	expiryRaw := getEnv("JWT_EXPIRY_HOURS", "24")
+// IsProd returns true if the application is running in production mode.
+func (c *Config) IsProd() bool {
+	return c.Env == "production"
+}
 
-	hours, err := strconv.Atoi(expiryRaw)
+// Load reads configuration from environment variables with default fallbacks.
+func Load() *Config {
+	jwtExpiryRaw := getEnv("JWT_EXPIRY_MINUTES", "15")
+	jwtMinutes, err := strconv.Atoi(jwtExpiryRaw)
 	if err != nil {
-		log.Printf("Warning: invalid JWT_EXPIRY_HOURS '%s' (must be a number). Using default: 24", expiryRaw)
-		hours = 24
+		log.Printf("Warning: invalid JWT_EXPIRY_MINUTES '%s'. Using default: 15", jwtExpiryRaw)
+		jwtMinutes = 15
 	}
+	jwtExpiry := time.Duration(jwtMinutes) * time.Minute
+
+	refreshRaw := getEnv("REFRESH_EXPIRY_DAYS", "30")
+	refreshDays, err := strconv.Atoi(refreshRaw)
+	if err != nil {
+		log.Printf("Warning: invalid REFRESH_EXPIRY_DAYS '%s' (must be a number). Using default: 30", refreshRaw)
+		refreshDays = 30
+	}
+	refreshExpiry := time.Duration(refreshDays) * 24 * time.Hour
 
 	return &Config{
-		DBHost:        getEnv("DB_HOST", "127.0.0.1"),
-		DBPort:        getEnv("DB_PORT", "5432"),
-		DBName:        getEnv("DB_NAME", "todo_db"),
-		DBUser:        getEnv("DB_USER", "postgres"),
-		DBPassword:    getEnv("DB_PASSWORD", ""),
-		DBSSLMode:     getEnv("DB_SSLMODE", "disable"),
-		JWTSecret:     getEnv("JWT_SECRET", "super-secret-key"),
-		JWTExpiry:     time.Duration(hours) * time.Hour,
+		Env:           getEnv("ENV", "development"),
 		Port:          getEnv("PORT", "8080"),
 		AllowedOrigin: getEnv("ALLOWED_ORIGIN", "http://localhost:5173"),
 		GroqAPIKey:    getEnv("GROQ_API_KEY", ""),
+
+		DBHost:     getEnv("DB_HOST", "127.0.0.1"),
+		DBPort:     getEnv("DB_PORT", "5432"),
+		DBName:     getEnv("DB_NAME", "todo_db"),
+		DBUser:     getEnv("DB_USER", "postgres"),
+		DBPassword: getEnv("DB_PASSWORD", ""),
+		DBSSLMode:  getEnv("DB_SSLMODE", "disable"),
+
+		JWTSecret:     getEnv("JWT_SECRET", "super-secret-key"),
+		JWTExpiry:     jwtExpiry,
+		RefreshExpiry: refreshExpiry,
 	}
 }
 

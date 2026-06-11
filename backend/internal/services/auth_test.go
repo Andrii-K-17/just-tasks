@@ -17,6 +17,7 @@ import (
 
 const testSecret = "test_secret"
 const testExpiry = time.Hour
+const testRefreshExpiry = 7 * 24 * time.Hour
 
 func TestAuthService_Register_Success(t *testing.T) {
 	userRepo := new(mocks.UserRepository)
@@ -24,7 +25,7 @@ func TestAuthService_Register_Success(t *testing.T) {
 	svc := services.NewAuthService(userRepo, refreshRepo)
 
 	expected := &models.User{ID: 1, Username: "user1", CreatedAt: time.Now()}
-	stored := &models.RefreshToken{ID: 1, UserID: 1, ExpiresAt: time.Now().Add(services.RefreshExpiry)}
+	stored := &models.RefreshToken{ID: 1, UserID: 1, ExpiresAt: time.Now().Add(testRefreshExpiry)}
 
 	userRepo.On("ExistsByUsername", "user1").Return(false, nil)
 	userRepo.On("Create", "user1", mock.MatchedBy(func(s string) bool {
@@ -33,7 +34,7 @@ func TestAuthService_Register_Success(t *testing.T) {
 	refreshRepo.On("Create", 1, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
 		Return(stored, nil)
 
-	user, pair, err := svc.Register("user1", "password123", testSecret, testExpiry)
+	user, pair, err := svc.Register("user1", "password123", testSecret, testExpiry, testRefreshExpiry)
 
 	require.NoError(t, err)
 	assert.Equal(t, expected.Username, user.Username)
@@ -50,7 +51,7 @@ func TestAuthService_Register_UsernameTaken(t *testing.T) {
 
 	userRepo.On("ExistsByUsername", "user1").Return(true, nil)
 
-	_, _, err := svc.Register("user1", "password123", testSecret, testExpiry)
+	_, _, err := svc.Register("user1", "password123", testSecret, testExpiry, testRefreshExpiry)
 
 	assert.ErrorIs(t, err, services.ErrUsernameTaken)
 	userRepo.AssertExpectations(t)
@@ -63,13 +64,13 @@ func TestAuthService_Login_Success(t *testing.T) {
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.MinCost)
 	stored := &models.User{ID: 1, Username: "user1", PasswordHash: string(hash)}
-	storedToken := &models.RefreshToken{ID: 1, UserID: 1, ExpiresAt: time.Now().Add(services.RefreshExpiry)}
+	storedToken := &models.RefreshToken{ID: 1, UserID: 1, ExpiresAt: time.Now().Add(testRefreshExpiry)}
 
 	userRepo.On("FindByUsername", "user1").Return(stored, nil)
 	refreshRepo.On("Create", 1, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
 		Return(storedToken, nil)
 
-	user, pair, err := svc.Login("user1", "password123", testSecret, testExpiry)
+	user, pair, err := svc.Login("user1", "password123", testSecret, testExpiry, testRefreshExpiry)
 
 	require.NoError(t, err)
 	assert.Equal(t, stored.ID, user.ID)
@@ -89,7 +90,7 @@ func TestAuthService_Login_WrongPassword(t *testing.T) {
 
 	userRepo.On("FindByUsername", "user1").Return(stored, nil)
 
-	_, _, err := svc.Login("user1", "wrong", testSecret, testExpiry)
+	_, _, err := svc.Login("user1", "wrong", testSecret, testExpiry, testRefreshExpiry)
 
 	assert.ErrorIs(t, err, services.ErrInvalidCredentials)
 	userRepo.AssertExpectations(t)
@@ -102,7 +103,7 @@ func TestAuthService_Login_UserNotFound(t *testing.T) {
 
 	userRepo.On("FindByUsername", "ghost").Return(nil, errors.New("not found"))
 
-	_, _, err := svc.Login("ghost", "password123", testSecret, testExpiry)
+	_, _, err := svc.Login("ghost", "password123", testSecret, testExpiry, testRefreshExpiry)
 
 	assert.ErrorIs(t, err, services.ErrInvalidCredentials)
 	userRepo.AssertExpectations(t)
@@ -121,14 +122,14 @@ func TestAuthService_Refresh_Success(t *testing.T) {
 		TokenHash: tokenHash,
 		ExpiresAt: time.Now().Add(time.Hour),
 	}
-	newToken := &models.RefreshToken{ID: 2, UserID: 1, ExpiresAt: time.Now().Add(services.RefreshExpiry)}
+	newToken := &models.RefreshToken{ID: 2, UserID: 1, ExpiresAt: time.Now().Add(testRefreshExpiry)}
 
 	refreshRepo.On("FindByTokenHash", tokenHash).Return(storedToken, nil)
 	refreshRepo.On("DeleteByTokenHash", tokenHash).Return(nil)
 	refreshRepo.On("Create", 1, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
 		Return(newToken, nil)
 
-	pair, err := svc.Refresh(rawToken, testSecret, testExpiry)
+	pair, err := svc.Refresh(rawToken, testSecret, testExpiry, testRefreshExpiry)
 
 	require.NoError(t, err)
 	assert.NotEmpty(t, pair.AccessToken)
@@ -153,7 +154,7 @@ func TestAuthService_Refresh_Expired(t *testing.T) {
 	refreshRepo.On("FindByTokenHash", tokenHash).Return(storedToken, nil)
 	refreshRepo.On("DeleteByTokenHash", tokenHash).Return(nil)
 
-	_, err := svc.Refresh(rawToken, testSecret, testExpiry)
+	_, err := svc.Refresh(rawToken, testSecret, testExpiry, testRefreshExpiry)
 
 	assert.ErrorIs(t, err, services.ErrInvalidRefreshToken)
 	refreshRepo.AssertExpectations(t)
@@ -169,7 +170,7 @@ func TestAuthService_Refresh_InvalidToken(t *testing.T) {
 
 	refreshRepo.On("FindByTokenHash", tokenHash).Return(nil, errors.New("not found"))
 
-	_, err := svc.Refresh(rawToken, testSecret, testExpiry)
+	_, err := svc.Refresh(rawToken, testSecret, testExpiry, testRefreshExpiry)
 
 	assert.ErrorIs(t, err, services.ErrInvalidRefreshToken)
 	refreshRepo.AssertExpectations(t)

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Andrii-K-17/just-tasks/internal/config"
 	"github.com/Andrii-K-17/just-tasks/internal/handlers"
 	"github.com/Andrii-K-17/just-tasks/internal/middleware"
 	"github.com/Andrii-K-17/just-tasks/internal/repository"
@@ -15,20 +16,14 @@ import (
 )
 
 // New initializes and configures the main application router.
-func New(
-	db *sqlx.DB,
-	jwtSecret string,
-	jwtExpiry time.Duration,
-	allowedOrigin string,
-	groqAPIKey string,
-) http.Handler {
+func New(db *sqlx.DB, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
 	r.Use(chimw.Timeout(30 * time.Second))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{allowedOrigin},
+		AllowedOrigins:   []string{cfg.AllowedOrigin},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,
@@ -43,9 +38,15 @@ func New(
 	authSvc := services.NewAuthService(userRepo, refreshTokenRepo)
 	taskSvc := services.NewTaskService(taskRepo)
 	categorySvc := services.NewCategoryService(categoryRepo)
-	aiSvc := services.NewAIService(groqAPIKey)
+	aiSvc := services.NewAIService(cfg.GroqAPIKey)
 
-	auth := handlers.NewAuthHandler(authSvc, jwtSecret, jwtExpiry)
+	auth := handlers.NewAuthHandler(
+		authSvc,
+		cfg.JWTSecret,
+		cfg.JWTExpiry,
+		cfg.RefreshExpiry,
+		cfg.IsProd(),
+	)
 	tasks := handlers.NewTaskHandler(taskSvc)
 	categories := handlers.NewCategoryHandler(categorySvc)
 	ai := handlers.NewAIHandler(aiSvc)
@@ -59,7 +60,7 @@ func New(
 
 		// Protected routes requiring JWT authentication.
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.Auth(jwtSecret))
+			r.Use(middleware.Auth(cfg.JWTSecret))
 
 			r.Get("/me", auth.Me)
 			r.Delete("/account", auth.DeleteAccount)

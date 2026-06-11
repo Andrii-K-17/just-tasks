@@ -38,7 +38,7 @@ func main() {
 	}()
 	slog.Info("database connected", "host", cfg.DBHost, "name", cfg.DBName)
 
-	handler := router.New(database, cfg.JWTSecret, cfg.JWTExpiry, cfg.AllowedOrigin, cfg.GroqAPIKey)
+	handler := router.New(database, cfg)
 
 	srv := &http.Server{
 		Addr:         ":" + cfg.Port,
