@@ -19,8 +19,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 /**
  * Fetches the currently authenticated user's profile.
  */
-export const fetchMe = (): Promise<User> =>
-  request<User>('/me')
+export const fetchMe = (): Promise<User> => request<User>('/me')
 
 /**
  * Authenticates a user with credentials.
@@ -45,7 +44,7 @@ export const register = (username: string, password: string): Promise<User> =>
  */
 export const logout = (): Promise<void> =>
   request<void>('/logout', {
-    method: 'POST'
+    method: 'POST',
   })
 
 /**
@@ -53,5 +52,13 @@ export const logout = (): Promise<void> =>
  */
 export const deleteAccount = (): Promise<void> =>
   request<void>('/account', {
-    method: 'DELETE'
+    method: 'DELETE',
+  })
+
+/**
+ * Attempts to refresh the access token using the refresh token cookie.
+ */
+export const refreshToken = (): Promise<void> =>
+  request<void>('/refresh', {
+    method: 'POST',
   })
