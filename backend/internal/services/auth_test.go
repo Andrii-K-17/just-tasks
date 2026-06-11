@@ -15,85 +15,177 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const testSecret = "test_secret"
+const testExpiry = time.Hour
+
 func TestAuthService_Register_Success(t *testing.T) {
-	repo := new(mocks.UserRepository)
-	svc := services.NewAuthService(repo)
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
 
 	expected := &models.User{ID: 1, Username: "user1", CreatedAt: time.Now()}
+	stored := &models.RefreshToken{ID: 1, UserID: 1, ExpiresAt: time.Now().Add(services.RefreshExpiry)}
 
-	repo.On("ExistsByUsername", "user1").Return(false, nil)
-	repo.On("Create", "user1", mock.MatchedBy(func(s string) bool {
+	userRepo.On("ExistsByUsername", "user1").Return(false, nil)
+	userRepo.On("Create", "user1", mock.MatchedBy(func(s string) bool {
 		return strings.HasPrefix(s, "$2a$")
 	})).Return(expected, nil)
+	refreshRepo.On("Create", 1, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(stored, nil)
 
-	user, err := svc.Register("user1", "password123")
+	user, pair, err := svc.Register("user1", "password123", testSecret, testExpiry)
 
 	require.NoError(t, err)
 	assert.Equal(t, expected.Username, user.Username)
-	repo.AssertExpectations(t)
+	assert.NotEmpty(t, pair.AccessToken)
+	assert.NotEmpty(t, pair.RefreshToken)
+	userRepo.AssertExpectations(t)
+	refreshRepo.AssertExpectations(t)
 }
 
-func TestAuthService_register_UsernameTaken(t *testing.T) {
-	repo := new(mocks.UserRepository)
-	svc := services.NewAuthService(repo)
+func TestAuthService_Register_UsernameTaken(t *testing.T) {
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
 
-	repo.On("ExistsByUsername", "user1").Return(true, nil)
+	userRepo.On("ExistsByUsername", "user1").Return(true, nil)
 
-	_, err := svc.Register("user1", "password123")
+	_, _, err := svc.Register("user1", "password123", testSecret, testExpiry)
 
 	assert.ErrorIs(t, err, services.ErrUsernameTaken)
-	repo.AssertExpectations(t)
+	userRepo.AssertExpectations(t)
 }
 
 func TestAuthService_Login_Success(t *testing.T) {
-	repo := new(mocks.UserRepository)
-	svc := services.NewAuthService(repo)
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.MinCost)
 	stored := &models.User{ID: 1, Username: "user1", PasswordHash: string(hash)}
+	storedToken := &models.RefreshToken{ID: 1, UserID: 1, ExpiresAt: time.Now().Add(services.RefreshExpiry)}
 
-	repo.On("FindByUsername", "user1").Return(stored, nil)
+	userRepo.On("FindByUsername", "user1").Return(stored, nil)
+	refreshRepo.On("Create", 1, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(storedToken, nil)
 
-	user, err := svc.Login("user1", "password123")
+	user, pair, err := svc.Login("user1", "password123", testSecret, testExpiry)
 
 	require.NoError(t, err)
 	assert.Equal(t, stored.ID, user.ID)
-	repo.AssertExpectations(t)
+	assert.NotEmpty(t, pair.AccessToken)
+	assert.NotEmpty(t, pair.RefreshToken)
+	userRepo.AssertExpectations(t)
+	refreshRepo.AssertExpectations(t)
 }
 
 func TestAuthService_Login_WrongPassword(t *testing.T) {
-	repo := new(mocks.UserRepository)
-	svc := services.NewAuthService(repo)
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte("correct"), bcrypt.MinCost)
 	stored := &models.User{ID: 1, Username: "user1", PasswordHash: string(hash)}
 
-	repo.On("FindByUsername", "user1").Return(stored, nil)
+	userRepo.On("FindByUsername", "user1").Return(stored, nil)
 
-	_, err := svc.Login("user1", "wrong")
+	_, _, err := svc.Login("user1", "wrong", testSecret, testExpiry)
 
 	assert.ErrorIs(t, err, services.ErrInvalidCredentials)
-	repo.AssertExpectations(t)
+	userRepo.AssertExpectations(t)
 }
 
 func TestAuthService_Login_UserNotFound(t *testing.T) {
-	repo := new(mocks.UserRepository)
-	svc := services.NewAuthService(repo)
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
 
-	repo.On("FindByUsername", "ghost").Return(nil, errors.New("not found"))
-	_, err := svc.Login("ghost", "password123")
+	userRepo.On("FindByUsername", "ghost").Return(nil, errors.New("not found"))
+
+	_, _, err := svc.Login("ghost", "password123", testSecret, testExpiry)
 
 	assert.ErrorIs(t, err, services.ErrInvalidCredentials)
-	repo.AssertExpectations(t)
+	userRepo.AssertExpectations(t)
+}
+
+func TestAuthService_Refresh_Success(t *testing.T) {
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
+
+	rawToken := "some_raw_token"
+	tokenHash := services.HashRefreshToken(rawToken)
+	storedToken := &models.RefreshToken{
+		ID:        1,
+		UserID:    1,
+		TokenHash: tokenHash,
+		ExpiresAt: time.Now().Add(time.Hour),
+	}
+	newToken := &models.RefreshToken{ID: 2, UserID: 1, ExpiresAt: time.Now().Add(services.RefreshExpiry)}
+
+	refreshRepo.On("FindByTokenHash", tokenHash).Return(storedToken, nil)
+	refreshRepo.On("DeleteByTokenHash", tokenHash).Return(nil)
+	refreshRepo.On("Create", 1, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
+		Return(newToken, nil)
+
+	pair, err := svc.Refresh(rawToken, testSecret, testExpiry)
+
+	require.NoError(t, err)
+	assert.NotEmpty(t, pair.AccessToken)
+	assert.NotEmpty(t, pair.RefreshToken)
+	refreshRepo.AssertExpectations(t)
+}
+
+func TestAuthService_Refresh_Expired(t *testing.T) {
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
+
+	rawToken := "expired_token"
+	tokenHash := services.HashRefreshToken(rawToken)
+	storedToken := &models.RefreshToken{
+		ID:        1,
+		UserID:    1,
+		TokenHash: tokenHash,
+		ExpiresAt: time.Now().Add(-time.Hour),
+	}
+
+	refreshRepo.On("FindByTokenHash", tokenHash).Return(storedToken, nil)
+	refreshRepo.On("DeleteByTokenHash", tokenHash).Return(nil)
+
+	_, err := svc.Refresh(rawToken, testSecret, testExpiry)
+
+	assert.ErrorIs(t, err, services.ErrInvalidRefreshToken)
+	refreshRepo.AssertExpectations(t)
+}
+
+func TestAuthService_Refresh_InvalidToken(t *testing.T) {
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
+
+	rawToken := "unknown_token"
+	tokenHash := services.HashRefreshToken(rawToken)
+
+	refreshRepo.On("FindByTokenHash", tokenHash).Return(nil, errors.New("not found"))
+
+	_, err := svc.Refresh(rawToken, testSecret, testExpiry)
+
+	assert.ErrorIs(t, err, services.ErrInvalidRefreshToken)
+	refreshRepo.AssertExpectations(t)
 }
 
 func TestAuthService_DeleteAccount(t *testing.T) {
-	repo := new(mocks.UserRepository)
-	svc := services.NewAuthService(repo)
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
 
-	repo.On("Delete", 15).Return(nil)
+	refreshRepo.On("DeleteAllByUserID", 15).Return(nil)
+	userRepo.On("Delete", 15).Return(nil)
+
 	err := svc.DeleteAccount(15)
 
 	require.NoError(t, err)
-	repo.AssertExpectations(t)
+	userRepo.AssertExpectations(t)
+	refreshRepo.AssertExpectations(t)
 }
