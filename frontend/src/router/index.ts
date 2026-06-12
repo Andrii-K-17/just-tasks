@@ -30,9 +30,9 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to) => {
+router.beforeEach(async to => {
   const auth = useAuthStore()
-  
+
   if (auth.user === null) {
     await auth.init()
   }

@@ -34,9 +34,7 @@ const list = computed({
         <TaskItem :task="element" class="flex-1 min-w-0" />
 
         <button
-          class="drag-handle flex-shrink-0 cursor-grab active:cursor-grabbing
-                 text-slate-600 hover:text-slate-900 transition-colors
-                 touch-none p-1 -ml-1 dark:text-slate-400 dark:hover:text-slate-200"
+          class="drag-handle flex-shrink-0 cursor-grab active:cursor-grabbing text-slate-600 hover:text-slate-900 transition-colors touch-none p-1 -ml-1 dark:text-slate-400 dark:hover:text-slate-200"
           aria-label="Drag to reorder"
         >
           <Bars3Icon class="w-4 h-4" />

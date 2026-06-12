@@ -31,47 +31,48 @@ export const useTaskStore = defineStore('tasks', () => {
     let result = tasks.value
 
     if (filter.value === 'active') result = result.filter(t => !t.is_completed)
-    if (filter.value === 'done')   result = result.filter(t =>  t.is_completed)
+    if (filter.value === 'done') result = result.filter(t => t.is_completed)
     if (filter.value === 'shared') {
-      result = result.filter(t => 
-        (t.collaborators && t.collaborators.length > 0) || 
-        (authStore.user && t.owner_name !== authStore.user.username)
+      result = result.filter(
+        t =>
+          (t.collaborators && t.collaborators.length > 0) ||
+          (authStore.user && t.owner_name !== authStore.user.username),
       )
     }
 
     const query = searchQuery.value.trim().toLowerCase()
     if (query) result = result.filter(t => t.task_text.toLowerCase().includes(query))
-    
-    if (selectedCategoryId.value) result = result.filter(t => t.category_id === selectedCategoryId.value)
+
+    if (selectedCategoryId.value)
+      result = result.filter(t => t.category_id === selectedCategoryId.value)
 
     return result
   })
 
   /**
-  * Computes the list of tasks filtered by search query and category.
-  * Used for global statistics on the main page.
-  */
+   * Computes the list of tasks filtered by search query and category.
+   * Used for global statistics on the main page.
+   */
   const allFilteredTasks = computed(() => {
     let result = tasks.value
-    
+
     const query = searchQuery.value.trim().toLowerCase()
     if (query) result = result.filter(t => t.task_text.toLowerCase().includes(query))
 
-    if (selectedCategoryId.value) result = result.filter(t => t.category_id === selectedCategoryId.value)
+    if (selectedCategoryId.value)
+      result = result.filter(t => t.category_id === selectedCategoryId.value)
 
     return result
   })
 
   /**
-  * Computes the number of completed tasks from the globally filtered list.
-  */
-  const completedCount = computed(() =>
-    allFilteredTasks.value.filter(t => t.is_completed).length
-  )
+   * Computes the number of completed tasks from the globally filtered list.
+   */
+  const completedCount = computed(() => allFilteredTasks.value.filter(t => t.is_completed).length)
 
   /**
-  * Computes the total number of tasks from the globally filtered list.
-  */
+   * Computes the total number of tasks from the globally filtered list.
+   */
   const totalCount = computed(() => allFilteredTasks.value.length)
 
   /**
@@ -82,7 +83,9 @@ export const useTaskStore = defineStore('tasks', () => {
     const done = tasks.value.filter(t => t.is_completed).length
     const active = total - done
     const today = new Date().toISOString().slice(0, 10)
-    const overdue = tasks.value.filter(t => t.deadline && !t.is_completed && t.deadline < today).length
+    const overdue = tasks.value.filter(
+      t => t.deadline && !t.is_completed && t.deadline < today,
+    ).length
     const byPriority = {
       low: tasks.value.filter(t => t.priority === 1).length,
       medium: tasks.value.filter(t => t.priority === 2).length,
@@ -212,6 +215,6 @@ export const useTaskStore = defineStore('tasks', () => {
     addTaskCollaborator,
     removeTaskCollaborator,
     reset,
-    reorder
+    reorder,
   }
 })

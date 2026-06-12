@@ -67,6 +67,6 @@ export const useCategoryStore = defineStore('category', () => {
     load,
     add,
     remove,
-    getById
+    getById,
   }
 })

@@ -12,9 +12,7 @@ const route = useRoute()
 const isDark = useDark()
 const toggleDark = useToggle(isDark)
 
-const mode = ref<'login' | 'register'>(
-  route.query.mode === 'register' ? 'register' : 'login'
-)
+const mode = ref<'login' | 'register'>(route.query.mode === 'register' ? 'register' : 'login')
 const username = ref('')
 const password = ref('')
 const error = ref('')
@@ -42,8 +40,9 @@ async function submit() {
 </script>
 
 <template>
-  <div class="min-h-screen relative bg-emerald-50/30 flex items-center justify-center p-4 dark:bg-slate-950 transition-colors">
-    
+  <div
+    class="min-h-screen relative bg-emerald-50/30 flex items-center justify-center p-4 dark:bg-slate-950 transition-colors"
+  >
     <button
       @click="toggleDark()"
       class="absolute top-4 right-4 p-2 rounded-xl text-slate-900 hover:text-emerald-600 dark:text-slate-300 dark:hover:text-emerald-400 active:scale-110 hover:cursor-pointer transform transition-transform"
@@ -54,24 +53,26 @@ async function submit() {
     </button>
 
     <div class="w-full max-w-sm">
-
       <h1 class="text-2xl font-bold tracking-tight text-center gap-1 dark:text-slate-100">
         Just <span class="text-emerald-500 dark:text-emerald-400">Tasks</span>
       </h1>
-      <p class="text-slate-600 text-sm text-center mb-8 dark:text-slate-400">
-        Tasks made simple.
-      </p>
+      <p class="text-slate-600 text-sm text-center mb-8 dark:text-slate-400">Tasks made simple.</p>
 
-      <div class="flex bg-white rounded-2xl p-1 mb-6 border border-emerald-200 dark:bg-slate-900 dark:border-slate-800 transition-colors">
+      <div
+        class="flex bg-white rounded-2xl p-1 mb-6 border border-emerald-200 dark:bg-slate-900 dark:border-slate-800 transition-colors"
+      >
         <button
-          v-for="m in (['login', 'register'] as const)"
+          v-for="m in ['login', 'register'] as const"
           :key="m"
-          @click="mode = m; error = ''"
+          @click="
+            mode = m
+            error = ''
+          "
           :class="[
             'flex-1 py-1.5 border border-transparent rounded-xl text-sm font-medium hover:cursor-pointer transition-all capitalize',
             mode === m
               ? 'bg-emerald-600 text-white shadow dark:bg-emerald-600'
-              : 'text-gray-600 hover:border-emerald-300 dark:text-slate-400 dark:hover:border-slate-700'
+              : 'text-gray-600 hover:border-emerald-300 dark:text-slate-400 dark:hover:border-slate-700',
           ]"
         >
           {{ m === 'login' ? 'Sign In' : 'Register' }}
@@ -110,7 +111,6 @@ async function submit() {
           {{ loading ? 'Loading…' : mode === 'login' ? 'Sign In' : 'Create Account' }}
         </button>
       </form>
-
     </div>
   </div>
 </template>

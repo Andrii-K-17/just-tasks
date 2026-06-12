@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { 
+import {
   CheckCircleIcon,
   ChartPieIcon,
   MoonIcon,
   SunIcon,
   UserGroupIcon,
-  SparklesIcon
+  SparklesIcon,
 } from '@heroicons/vue/24/outline'
 import { useDark, useToggle } from '@vueuse/core'
 
@@ -17,12 +17,18 @@ const toggleDark = useToggle(isDark)
 </script>
 
 <template>
-  <div class="min-h-screen bg-emerald-50/30 text-black flex flex-col font-sans dark:bg-slate-950 dark:text-slate-100 transition-colors">
-    
-    <div class="sticky h-14 top-0 z-50 shadow-xs w-full border-b border-emerald-100 bg-[#f9fefb] dark:bg-slate-950 dark:border-slate-800 transition-colors">
+  <div
+    class="min-h-screen bg-emerald-50/30 text-black flex flex-col font-sans dark:bg-slate-950 dark:text-slate-100 transition-colors"
+  >
+    <div
+      class="sticky h-14 top-0 z-50 shadow-xs w-full border-b border-emerald-100 bg-[#f9fefb] dark:bg-slate-950 dark:border-slate-800 transition-colors"
+    >
       <header class="flex items-center justify-between max-w-5xl mx-auto px-4 h-full">
         <div>
-          <h1 class="text-xl font-bold tracking-tight inline-flex items-center gap-1 cursor-pointer" @click="router.push('/')">
+          <h1
+            class="text-xl font-bold tracking-tight inline-flex items-center gap-1 cursor-pointer"
+            @click="router.push('/')"
+          >
             Just <span class="text-emerald-500 dark:text-emerald-400">Tasks</span>
           </h1>
         </div>
@@ -37,14 +43,14 @@ const toggleDark = useToggle(isDark)
             <MoonIcon v-else class="w-5 h-5" />
           </button>
 
-          <button 
-            @click="router.push('/login')" 
+          <button
+            @click="router.push('/login')"
             class="px-4 py-2 rounded-xl border border-emerald-400 text-slate-700 hover:bg-emerald-100 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Log in
           </button>
-          <button 
-            @click="router.push('/login?mode=register')" 
+          <button
+            @click="router.push('/login?mode=register')"
             class="px-4 py-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 transition-colors shadow-sm cursor-pointer"
           >
             Get Started
@@ -54,31 +60,39 @@ const toggleDark = useToggle(isDark)
     </div>
 
     <main class="flex-grow flex flex-col items-center justify-center px-4 pt-13 pb-16 text-center">
-      <h2 class="text-5xl sm:text-6xl md:text-7xl font-extrabold text-slate-900 dark:text-slate-100 mb-6 max-w-4xl">
+      <h2
+        class="text-5xl sm:text-6xl md:text-7xl font-extrabold text-slate-900 dark:text-slate-100 mb-6 max-w-4xl"
+      >
         Organize your tasks,
-        <span class="text-emerald-500 dark:text-emerald-400 text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-emerald-700 dark:from-emerald-400 dark:to-emerald-600">
+        <span
+          class="text-emerald-500 dark:text-emerald-400 text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-emerald-700 dark:from-emerald-400 dark:to-emerald-600"
+        >
           without the chaos.
         </span>
       </h2>
-      
-      <p class="text-lg sm:text-xl text-gray-600 dark:text-slate-400 max-w-2xl mb-10 leading-relaxed">
+
+      <p
+        class="text-lg sm:text-xl text-gray-600 dark:text-slate-400 max-w-2xl mb-10 leading-relaxed"
+      >
         A minimalist space for your daily tasks.
       </p>
 
-      <button 
-        @click="router.push('/login?mode=register')" 
+      <button
+        @click="router.push('/login?mode=register')"
         class="px-8 py-3.5 rounded-full bg-emerald-600 text-white text-lg font-medium hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-600/20 dark:hover:shadow-emerald-500/20 transform hover:-translate-y-0.5 transition-all cursor-pointer"
       >
         Start doing for free
       </button>
-
     </main>
 
-    <section class="bg-[#f9fefb] border-t border-emerald-100 dark:bg-slate-950 dark:border-slate-800 transition-colors py-10 px-4">
+    <section
+      class="bg-[#f9fefb] border-t border-emerald-100 dark:bg-slate-950 dark:border-slate-800 transition-colors py-10 px-4"
+    >
       <div class="max-w-4xl mx-auto grid sm:grid-cols-2 md:grid-cols-2 gap-10 sm:gap-12">
-
         <div class="space-y-4">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
+          <div
+            class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center"
+          >
             <CheckCircleIcon class="w-6 h-6" />
           </div>
           <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">Simple by design</h3>
@@ -86,9 +100,11 @@ const toggleDark = useToggle(isDark)
             A clean interface that respects your attention and time.
           </p>
         </div>
-      
+
         <div class="space-y-4">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
+          <div
+            class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center"
+          >
             <ChartPieIcon class="w-6 h-6" />
           </div>
           <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">Clear progress</h3>
@@ -96,9 +112,11 @@ const toggleDark = useToggle(isDark)
             Understand your productivity with minimal stats.
           </p>
         </div>
-      
+
         <div class="space-y-4">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
+          <div
+            class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center"
+          >
             <UserGroupIcon class="w-6 h-6" />
           </div>
           <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">Seamless sharing</h3>
@@ -106,9 +124,11 @@ const toggleDark = useToggle(isDark)
             Collaborate with others on shared tasks with strict owner controls.
           </p>
         </div>
-      
+
         <div class="space-y-4">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center">
+          <div
+            class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 flex items-center justify-center"
+          >
             <SparklesIcon class="w-6 h-6" />
           </div>
           <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">AI task generator</h3>
@@ -116,7 +136,6 @@ const toggleDark = useToggle(isDark)
             Break down complex goals into actionable items using Groq API.
           </p>
         </div>
-      
       </div>
     </section>
   </div>

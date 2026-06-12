@@ -5,7 +5,7 @@ import {
   CheckIcon,
   TagIcon,
   CalendarIcon,
-  UserGroupIcon
+  UserGroupIcon,
 } from '@heroicons/vue/24/outline'
 import { useTaskStore } from '@/stores/useTaskStore'
 import { useCategoryStore } from '@/stores/useCategoryStore'
@@ -46,7 +46,7 @@ const PRIORITY: Record<number, string> = {
 
 const today = new Date().toISOString().slice(0, 10)
 const isOverdue = computed(
-  () => props.task.deadline && !props.task.is_completed && props.task.deadline < today
+  () => props.task.deadline && !props.task.is_completed && props.task.deadline < today,
 )
 
 /**
@@ -140,16 +140,14 @@ onClickOutside(categoryCard, saveEditCategory)
         'w-5 h-5 hover:cursor-pointer rounded-full border-1 flex items-center justify-center flex-shrink-0 transition-all',
         task.is_completed
           ? 'bg-emerald-600 border-emerald-600 dark:bg-emerald-500 dark:border-emerald-500'
-          : 'border-emerald-900 hover:border-emerald-500 dark:border-slate-500 dark:hover:border-emerald-400'
+          : 'border-emerald-900 hover:border-emerald-500 dark:border-slate-500 dark:hover:border-emerald-400',
       ]"
       :aria-label="task.is_completed ? 'Mark incomplete' : 'Mark complete'"
     >
       <CheckIcon v-if="task.is_completed" class="w-3 h-3 text-white dark:text-slate-900" />
     </button>
 
-    <span
-      :class="['w-[0.55%] h-5 rounded-full flex-shrink-0', PRIORITY[task.priority]]"
-    ></span>
+    <span :class="['w-[0.55%] h-5 rounded-full flex-shrink-0', PRIORITY[task.priority]]"></span>
 
     <div class="flex-1 min-w-0">
       <textarea
@@ -165,7 +163,9 @@ onClickOutside(categoryCard, saveEditCategory)
         @click="startEdit"
         :class="[
           'text-sm cursor-text block truncate select-none',
-          task.is_completed ? 'line-through text-gray-700 dark:text-slate-500' : 'text-gray-900 dark:text-slate-100'
+          task.is_completed
+            ? 'line-through text-gray-700 dark:text-slate-500'
+            : 'text-gray-900 dark:text-slate-100',
         ]"
         :title="task.task_text"
       >
@@ -173,28 +173,28 @@ onClickOutside(categoryCard, saveEditCategory)
       </span>
 
       <div class="flex items-center gap-1">
-        <div
-          v-if="isEditingDeadline"
-          ref="deadlineCard"
-          class="relative"
-        >
-          <CalendarIcon class="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none" />
+        <div v-if="isEditingDeadline" ref="deadlineCard" class="relative">
+          <CalendarIcon
+            class="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none"
+          />
           <input
             v-model="editDeadlineValue"
             type="date"
             @blur="saveEditDeadline"
             @keydown="onKeydown"
             class="hover:cursor-pointer min-w-0 max-w-[140px] bg-emerald-50/30 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100 dark:focus:border-emerald-500"
-          >
+          />
         </div>
-        <div
-          v-else-if="task.deadline && !isEditingDeadline"
-          class="relative"
-        >
-          <CalendarIcon class="w-3.5 h-3.5 absolute top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none" />
+        <div v-else-if="task.deadline && !isEditingDeadline" class="relative">
+          <CalendarIcon
+            class="w-3.5 h-3.5 absolute top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none"
+          />
           <span
             @click="startEditDeadline"
-            :class="['pl-5 text-xs block mt-0.5 mr-2', isOverdue ? 'text-rose-600 dark:text-rose-400' : 'text-gray-700 dark:text-slate-400']"
+            :class="[
+              'pl-5 text-xs block mt-0.5 mr-2',
+              isOverdue ? 'text-rose-600 dark:text-rose-400' : 'text-gray-700 dark:text-slate-400',
+            ]"
           >
             {{ task.deadline }}
           </span>
@@ -207,13 +207,11 @@ onClickOutside(categoryCard, saveEditCategory)
         >
           Set deadline
         </button>
-        
-        <div
-          v-if="isEditingCategory"
-          ref="categoryCard"
-          class="relative min-w-[120px]"
-        >
-          <TagIcon class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none" />
+
+        <div v-if="isEditingCategory" ref="categoryCard" class="relative min-w-[120px]">
+          <TagIcon
+            class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none"
+          />
           <select
             v-model="editCategoryValue"
             @blur="saveEditCategory"
@@ -229,17 +227,21 @@ onClickOutside(categoryCard, saveEditCategory)
             </option>
           </select>
         </div>
-        <div v-else-if="task.category_id && categoryStore.getById(task.category_id)" class="flex items-center gap-1">
-          <TagIcon class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-500 pointer-events-none" />  
-          <span
-            @click="startEditCategory"
-            class="text-xs text-gray-700 dark:text-slate-400"
-          >
+        <div
+          v-else-if="task.category_id && categoryStore.getById(task.category_id)"
+          class="flex items-center gap-1"
+        >
+          <TagIcon class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-500 pointer-events-none" />
+          <span @click="startEditCategory" class="text-xs text-gray-700 dark:text-slate-400">
             {{ categoryStore.getById(task.category_id)?.name }}
           </span>
         </div>
         <button
-          v-else-if="(!task.category_id || !categoryStore.getById(task.category_id)) && isEditing && categoryStore.hasCategories"
+          v-else-if="
+            (!task.category_id || !categoryStore.getById(task.category_id)) &&
+            isEditing &&
+            categoryStore.hasCategories
+          "
           @click="startEditCategory"
           class="hover:cursor-pointer hover:bg-emerald-50 dark:hover:bg-slate-700 min-w-0 bg-emerald-50/20 border border-emerald-200 rounded-xl px-3 py-1 text-xs text-slate-900 focus:outline-none focus:border-emerald-400 transition-colors dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:focus:border-emerald-500"
           aria-label="Set category"
@@ -249,12 +251,14 @@ onClickOutside(categoryCard, saveEditCategory)
 
         <span
           v-if="isOwner && (props.task.collaborators?.length || 0) > 0"
-          class="px-2 py-0.5 text-xs rounded-lg border border-sky-100 bg-sky-50 text-sky-900 dark:border-sky-900 dark:bg-sky-900/40 dark:text-sky-200">
+          class="px-2 py-0.5 text-xs rounded-lg border border-sky-100 bg-sky-50 text-sky-900 dark:border-sky-900 dark:bg-sky-900/40 dark:text-sky-200"
+        >
           Shared
         </span>
         <span
           v-else-if="!isOwner"
-          class="px-2 py-0.5 text-xs rounded-lg border border-sky-100 bg-sky-50 text-sky-900 dark:border-sky-900 dark:bg-sky-900/40 dark:text-sky-200">
+          class="px-2 py-0.5 text-xs rounded-lg border border-sky-100 bg-sky-50 text-sky-900 dark:border-sky-900 dark:bg-sky-900/40 dark:text-sky-200"
+        >
           Collaborator
         </span>
       </div>
@@ -265,7 +269,7 @@ onClickOutside(categoryCard, saveEditCategory)
       ref="collabMenuRef"
       @click.stop
     >
-      <button 
+      <button
         v-if="isOwner"
         @click="showCollabMenu = true"
         class="hover:cursor-pointer mr-1 rounded-lg transition-all group-hover:opacity-100 text-gray-900 hover:text-emerald-600 transition-colors dark:text-slate-400 dark:hover:bg-slate-800"
@@ -273,7 +277,7 @@ onClickOutside(categoryCard, saveEditCategory)
       >
         <UserGroupIcon class="w-5 h-5" />
       </button>
-    
+
       <TaskCollaboratorsModal
         v-if="showCollabMenu"
         :task="task"
@@ -286,7 +290,7 @@ onClickOutside(categoryCard, saveEditCategory)
       v-if="isOwner"
       @click.stop="taskStore.remove(task.id)"
       class="hover:cursor-pointer group-hover:opacity-100 text-gray-900 hover:text-rose-600 transition-all flex-shrink-0 dark:text-slate-400 dark:hover:text-rose-400"
-      :class="[ isEditing ? 'md:opacity-100' : '']"
+      :class="[isEditing ? 'md:opacity-100' : '']"
       aria-label="Delete task"
     >
       <TrashIcon class="w-5 h-5" />
@@ -295,7 +299,7 @@ onClickOutside(categoryCard, saveEditCategory)
 </template>
 
 <style scoped>
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type='date']::-webkit-calendar-picker-indicator {
   opacity: 0;
 }
 </style>
