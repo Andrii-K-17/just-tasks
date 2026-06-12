@@ -21,13 +21,13 @@ interface EditableTask {
 const PRIORITY_NUM: Record<string, 1 | 2 | 3> = { low: 1, medium: 2, high: 3 }
 
 const priorityOptions = [
-  { value: 'low' as const,    label: 'Low',  color: 'text-gray-700 dark:text-gray-300' },
-  { value: 'medium' as const, label: 'Med',  color: 'text-yellow-700 dark:text-yellow-500' },
-  { value: 'high' as const,   label: 'High', color: 'text-red-700 dark:text-red-400' },
+  { value: 'low' as const, label: 'Low', color: 'text-gray-700 dark:text-gray-300' },
+  { value: 'medium' as const, label: 'Med', color: 'text-yellow-700 dark:text-yellow-500' },
+  { value: 'high' as const, label: 'High', color: 'text-red-700 dark:text-red-400' },
 ]
 
 const props = defineProps<{ prompt: string }>()
-const emit = defineEmits<{ close: [], saved: [] }>()
+const emit = defineEmits<{ close: []; saved: [] }>()
 
 const taskStore = useTaskStore()
 const categoryStore = useCategoryStore()
@@ -50,8 +50,8 @@ onMounted(async () => {
       deadline: t.deadline,
       priority: t.priority,
     }))
-  } catch (e: any) {
-    error.value = e.message || 'Failed to generate tasks'
+  } catch (e: unknown) {
+    if (e instanceof Error) error.value = e.message || 'Failed to generate tasks'
   } finally {
     loading.value = false
   }
@@ -104,8 +104,8 @@ async function save() {
     }
 
     emit('saved')
-  } catch (e: any) {
-    error.value = e.message || 'Failed to save'
+  } catch (e: unknown) {
+    if (e instanceof Error) error.value = e.message || 'Failed to save'
   } finally {
     saving.value = false
   }
@@ -119,12 +119,17 @@ async function save() {
       @click.self="emit('close')"
     >
       <Transition name="modal">
-        <div class="flex flex-col bg-emerald-50 border border-emerald-200 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-2rem)] shadow-2xl dark:bg-slate-900 dark:border-slate-800">
-
-          <div class="flex items-center justify-between px-5 py-4 border-b border-emerald-200 dark:border-slate-800 transition-colors">
+        <div
+          class="flex flex-col bg-emerald-50 border border-emerald-200 rounded-2xl w-full max-w-2xl max-h-[calc(100vh-2rem)] shadow-2xl dark:bg-slate-900 dark:border-slate-800"
+        >
+          <div
+            class="flex items-center justify-between px-5 py-4 border-b border-emerald-200 dark:border-slate-800 transition-colors"
+          >
             <div class="flex items-center gap-2">
               <SparklesIcon class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              <h2 class="text-2sm font-semibold text-black tracking-wide dark:text-slate-100">Generated Tasks Review</h2>
+              <h2 class="text-2sm font-semibold text-black tracking-wide dark:text-slate-100">
+                Generated Tasks Review
+              </h2>
             </div>
             <button
               @click="emit('close')"
@@ -139,7 +144,10 @@ async function save() {
             <p class="text-sm text-gray-700 dark:text-slate-400">Generating your task plan...</p>
           </div>
 
-          <div v-else-if="error && tasks.length === 0" class="px-5 py-10 flex flex-col items-center gap-3">
+          <div
+            v-else-if="error && tasks.length === 0"
+            class="px-5 py-10 flex flex-col items-center gap-3"
+          >
             <p class="text-sm text-rose-600 dark:text-rose-400">{{ error }}</p>
             <button
               @click="emit('close')"
@@ -150,7 +158,6 @@ async function save() {
           </div>
 
           <div v-else class="flex-1 flex flex-col min-h-0 px-5 py-1.5 gap-2">
-
             <div class="flex items-center gap-2 flex-shrink-0">
               <TagIcon class="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
               <input
@@ -161,7 +168,9 @@ async function save() {
               />
             </div>
 
-            <div class="border-t border-emerald-200 dark:border-slate-800 transition-colors flex-shrink-0"></div>
+            <div
+              class="border-t border-emerald-200 dark:border-slate-800 transition-colors flex-shrink-0"
+            ></div>
 
             <ul class="flex-1 overflow-y-auto space-y-2.5 pr-1 no-scrollbar">
               <li
@@ -176,7 +185,6 @@ async function save() {
                   class="w-full bg-transparent text-sm text-slate-900 placeholder-gray-500 focus:outline-none dark:text-slate-100 dark:placeholder-slate-400"
                 />
                 <div class="flex items-center gap-2 flex-wrap">
-
                   <div class="flex rounded-xl overflow-hidden shrink-0">
                     <button
                       v-for="opt in priorityOptions"
@@ -188,7 +196,7 @@ async function save() {
                         opt.color,
                         task.priority === opt.value
                           ? 'bg-emerald-300/80 rounded-xl border border-emerald-200 dark:bg-emerald-900/60 dark:border-emerald-700'
-                          : 'rounded-xl border border-transparent hover:border-emerald-200 dark:hover:border-slate-700'
+                          : 'rounded-xl border border-transparent hover:border-emerald-200 dark:hover:border-slate-700',
                       ]"
                     >
                       {{ opt.label }}
@@ -196,7 +204,9 @@ async function save() {
                   </div>
 
                   <div class="relative">
-                    <CalendarIcon class="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none" />
+                    <CalendarIcon
+                      class="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 pointer-events-none"
+                    />
                     <input
                       v-model="task.deadline"
                       type="date"
@@ -245,7 +255,6 @@ async function save() {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </Transition>
@@ -254,29 +263,31 @@ async function save() {
 </template>
 
 <style scoped>
-.backdrop-enter-active, .backdrop-leave-active {
-  transition: opacity .2s ease;
+.backdrop-enter-active,
+.backdrop-leave-active {
+  transition: opacity 0.2s ease;
 }
-.backdrop-enter-from, .backdrop-leave-to {
+.backdrop-enter-from,
+.backdrop-leave-to {
   opacity: 0;
 }
 
 .modal-enter-active {
-  transition: all .2s ease;
+  transition: all 0.2s ease;
 }
 .modal-leave-active {
-  transition: all .15s ease;
+  transition: all 0.15s ease;
 }
 .modal-enter-from {
   opacity: 0;
-  transform: scale(.96) translateY(8px);
+  transform: scale(0.96) translateY(8px);
 }
 .modal-leave-to {
   opacity: 0;
-  transform: scale(.96);
+  transform: scale(0.96);
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type='date']::-webkit-calendar-picker-indicator {
   opacity: 0;
 }
 

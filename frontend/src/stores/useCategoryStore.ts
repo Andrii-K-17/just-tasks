@@ -27,8 +27,8 @@ export const useCategoryStore = defineStore('category', () => {
     try {
       categories.value = await categoriesApi.getCategories()
       error.value = ''
-    } catch (e: any) {
-      error.value = e.message
+    } catch (e: unknown) {
+      if (e instanceof Error) error.value = e.message
     } finally {
       loading.value = false
     }

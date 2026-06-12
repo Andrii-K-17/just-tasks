@@ -21,8 +21,8 @@ async function handleAddCollaborator() {
     try {
       await taskStore.addTaskCollaborator(props.task.id, username)
       newCollabUsername.value = ''
-    } catch (e: any) {
-      alert(e.message || 'Failed to add collaborator')
+    } catch (e: unknown) {
+      if (e instanceof Error) alert(e.message || 'Failed to add collaborator')
     }
   }
 }
@@ -42,9 +42,15 @@ async function handleRemoveCollaborator(collabId: number) {
       @click.self="emit('close')"
     >
       <Transition name="modal">
-        <div class="bg-white border border-emerald-200 rounded-2xl w-full max-w-sm shadow-2xl z-70 overflow-hidden dark:bg-slate-900 dark:border-slate-800 transition-colors">
-          <div class="flex items-center justify-between px-5 py-4 border-b border-emerald-200 dark:border-slate-800">
-            <h2 class="text-2sm font-semibold text-black tracking-wide dark:text-slate-100">Share this task</h2>
+        <div
+          class="bg-white border border-emerald-200 rounded-2xl w-full max-w-sm shadow-2xl z-70 overflow-hidden dark:bg-slate-900 dark:border-slate-800 transition-colors"
+        >
+          <div
+            class="flex items-center justify-between px-5 py-4 border-b border-emerald-200 dark:border-slate-800"
+          >
+            <h2 class="text-2sm font-semibold text-black tracking-wide dark:text-slate-100">
+              Share this task
+            </h2>
             <button
               @click="emit('close')"
               class="text-gray-900 cursor-pointer hover:text-rose-600 transition-colors dark:text-slate-400 dark:hover:text-rose-400"
@@ -70,7 +76,10 @@ async function handleRemoveCollaborator(collabId: number) {
               </button>
             </div>
 
-            <div v-if="props.task.collaborators && props.task.collaborators.length > 0" class="space-y-2">
+            <div
+              v-if="props.task.collaborators && props.task.collaborators.length > 0"
+              class="space-y-2"
+            >
               <h4 class="text-[10px] uppercase text-gray-500 mb-1 font-semibold">Shared with</h4>
               <ul class="space-y-1 max-h-40 overflow-y-auto no-scrollbar">
                 <li
@@ -79,10 +88,14 @@ async function handleRemoveCollaborator(collabId: number) {
                   class="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50"
                 >
                   <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 dark:bg-slate-800 dark:text-emerald-400 text-xs font-semibold">
-                        <UserIcon class="w-4.5 h-4.5" />
+                    <div
+                      class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 dark:bg-slate-800 dark:text-emerald-400 text-xs font-semibold"
+                    >
+                      <UserIcon class="w-4.5 h-4.5" />
                     </div>
-                    <span class="truncate max-w-[130px] text-slate-900 dark:text-slate-300">{{ collab.username }}</span>
+                    <span class="truncate max-w-[130px] text-slate-900 dark:text-slate-300">{{
+                      collab.username
+                    }}</span>
                   </div>
                   <button
                     @click="handleRemoveCollaborator(collab.id)"
@@ -102,24 +115,26 @@ async function handleRemoveCollaborator(collabId: number) {
 </template>
 
 <style scoped>
-.backdrop-enter-active, .backdrop-leave-active {
-  transition: opacity .2s ease;
+.backdrop-enter-active,
+.backdrop-leave-active {
+  transition: opacity 0.2s ease;
 }
-.backdrop-enter-from, .backdrop-leave-to {
+.backdrop-enter-from,
+.backdrop-leave-to {
   opacity: 0;
 }
 .modal-enter-active {
-  transition: all .2s ease;
+  transition: all 0.2s ease;
 }
 .modal-leave-active {
-  transition: all .15s ease;
+  transition: all 0.15s ease;
 }
 .modal-enter-from {
   opacity: 0;
-  transform: scale(.96) translateY(8px);
+  transform: scale(0.96) translateY(8px);
 }
 .modal-leave-to {
   opacity: 0;
-  transform: scale(.96);
+  transform: scale(0.96);
 }
 </style>
