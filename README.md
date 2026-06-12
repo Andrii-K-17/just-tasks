@@ -29,6 +29,7 @@ A minimalist full‑stack task manager with user authentication, priorities, dea
 
 User Management
 - Secure auth: registration, login, logout
+- Refresh token rotation: automatic access token renewal via HTTP-only cookies
 - Account deletion: cascade remove with all tasks
 
 Task Management
@@ -102,6 +103,7 @@ just-tasks
 POST   /api/register                  create account
 POST   /api/login                     authenticate
 POST   /api/logout                    end session
+POST   /api/refresh                   rotate token pair
 GET    /api/me                        current user
 
 GET    /api/tasks                     list tasks
@@ -126,18 +128,20 @@ DELETE /api/account                   delete account + all tasks
 
 ## Environment
 ```bash
+ENV=development
+PORT=8080
+ALLOWED_ORIGIN=http://localhost:5173
+
 DB_HOST=db
 DB_PORT=5432
 DB_NAME=todo_db
 DB_USER=appuser
-DB_PASSWORD=your_password
+DB_PASSWORD=strongpassword
 DB_SSLMODE=disable
 
-JWT_SECRET=your-secret-key
-JWT_EXPIRY_HOURS=24
-
-PORT=8080
-ALLOWED_ORIGIN=http://localhost:5173
+JWT_SECRET=change-this-to-a-long-secret
+JWT_EXPIRY_MINUTES=15
+REFRESH_EXPIRY_DAYS=30
 
 GROQ_API_KEY=groq-api-key
 ```
