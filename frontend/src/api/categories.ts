@@ -1,4 +1,5 @@
 import type { Category } from '@/types'
+import { fetchWithRefresh } from '@/api/fetchWithRefresh'
 
 const BASE = '/api'
 
@@ -6,7 +7,7 @@ const BASE = '/api'
  * Sends a generic HTTP request and handles JSON response parsing.
  */
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE}${url}`, {
+  const response = await fetchWithRefresh(`${BASE}${url}`, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     ...options,
@@ -19,8 +20,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 /**
  * Fetch all categories.
  */
-export const getCategories = (): Promise<Category[]> =>
-  request<Category[]>('/categories')
+export const getCategories = (): Promise<Category[]> => request<Category[]>('/categories')
 
 /**
  * Create a new category.

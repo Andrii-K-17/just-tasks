@@ -1,4 +1,5 @@
 import type { Task } from '@/types'
+import { fetchWithRefresh } from '@/api/fetchWithRefresh'
 
 const BASE = '/api'
 
@@ -6,7 +7,7 @@ const BASE = '/api'
  * Sends a generic HTTP request and handles JSON response parsing.
  */
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE}${url}`, {
+  const response = await fetchWithRefresh(`${BASE}${url}`, {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     ...options,
@@ -19,8 +20,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 /**
  * Fetches all tasks for the current user.
  */
-export const fetchTasks = (): Promise<Task[]> =>
-  request<Task[]>('/tasks')
+export const fetchTasks = (): Promise<Task[]> => request<Task[]>('/tasks')
 
 /**
  * Creates a new task (with optional category).
@@ -41,7 +41,9 @@ export const addTask = (payload: {
  */
 export const updateTask = (
   id: number,
-  patch: Partial<Pick<Task, 'task_text' | 'is_completed' | 'priority' | 'deadline' | 'category_id'>>
+  patch: Partial<
+    Pick<Task, 'task_text' | 'is_completed' | 'priority' | 'deadline' | 'category_id'>
+  >,
 ): Promise<void> =>
   request<void>(`/tasks/${id}`, {
     method: 'PATCH',
@@ -53,7 +55,7 @@ export const updateTask = (
  */
 export const removeTask = (id: number): Promise<void> =>
   request<void>(`/tasks/${id}`, {
-    method: 'DELETE'
+    method: 'DELETE',
   })
 
 /**
@@ -79,5 +81,5 @@ export const addCollaborator = (id: number, username: string): Promise<void> =>
  */
 export const removeCollaborator = (id: number, collabId: number): Promise<void> =>
   request<void>(`/tasks/${id}/collaborators/${collabId}`, {
-    method: 'DELETE'
+    method: 'DELETE',
   })

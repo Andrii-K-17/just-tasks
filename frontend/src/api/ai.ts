@@ -1,10 +1,11 @@
 import type { AIGenerateResult } from '@/types'
+import { fetchWithRefresh } from '@/api/fetchWithRefresh'
 
 /**
  * Sends a prompt to the backend AI endpoint and returns a structured task plan.
  */
 export const generateTasks = async (text: string): Promise<AIGenerateResult> => {
-  const response = await fetch('/api/ai/generate', {
+  const response = await fetchWithRefresh('/api/ai/generate', {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
