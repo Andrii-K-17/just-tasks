@@ -11,6 +11,7 @@ import (
 type RefreshTokenRepository interface {
 	Create(userID int, tokenHash string, expiresAt time.Time) (*models.RefreshToken, error)
 	FindByTokenHash(tokenHash string) (*models.RefreshToken, error)
+	Revoke(tokenHash string) error
 	DeleteByTokenHash(tokenHash string) error
 	DeleteAllByUserID(userID int) error
 }
@@ -31,7 +32,7 @@ func (r *pgRefreshTokenRepository) Create(userID int, tokenHash string, expiresA
 	err := r.db.QueryRowx(
 		`INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
 		 VALUES ($1, $2, $3)
-		 RETURNING id, user_id, token_hash, expires_at, created_at`,
+		 RETURNING id, user_id, token_hash, expires_at, revoked_at, created_at`,
 		userID, tokenHash, expiresAt,
 	).StructScan(&token)
 	if err != nil {
@@ -44,13 +45,22 @@ func (r *pgRefreshTokenRepository) Create(userID int, tokenHash string, expiresA
 func (r *pgRefreshTokenRepository) FindByTokenHash(tokenHash string) (*models.RefreshToken, error) {
 	var token models.RefreshToken
 	err := r.db.Get(&token,
-		"SELECT id, user_id, token_hash, expires_at, created_at FROM refresh_tokens WHERE token_hash=$1",
+		"SELECT id, user_id, token_hash, expires_at, revoked_at, created_at FROM refresh_tokens WHERE token_hash=$1",
 		tokenHash,
 	)
 	if err != nil {
 		return nil, err
 	}
 	return &token, nil
+}
+
+// Revoke marks a refresh token as used without deleting it, so a later replay can be detected.
+func (r *pgRefreshTokenRepository) Revoke(tokenHash string) error {
+	_, err := r.db.Exec(
+		"UPDATE refresh_tokens SET revoked_at=NOW() WHERE token_hash=$1",
+		tokenHash,
+	)
+	return err
 }
 
 // DeleteByTokenHash removes a refresh token record by its hash.

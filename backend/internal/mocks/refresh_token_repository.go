@@ -28,6 +28,11 @@ func (m *RefreshTokenRepository) FindByTokenHash(tokenHash string) (*models.Refr
 	return nil, args.Error(1)
 }
 
+func (m *RefreshTokenRepository) Revoke(tokenHash string) error {
+	args := m.Called(tokenHash)
+	return args.Error(0)
+}
+
 func (m *RefreshTokenRepository) DeleteByTokenHash(tokenHash string) error {
 	args := m.Called(tokenHash)
 	return args.Error(0)
