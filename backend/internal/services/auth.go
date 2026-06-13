@@ -15,8 +15,11 @@ var ErrUsernameTaken = errors.New("this username is already taken")
 // ErrInvalidCredentials is returned on a failed login attempt.
 var ErrInvalidCredentials = errors.New("invalid credentials")
 
-// ErrInvalidRefreshToken is returned when a refresh token is missing, expired, or already used.
+// ErrInvalidRefreshToken is returned when a refresh token is missing or expired.
 var ErrInvalidRefreshToken = errors.New("invalid or expired refresh token")
+
+// ErrRefreshTokenReused is returned when a rotated refresh token is reused, indicating potential theft.
+var ErrRefreshTokenReused = errors.New("refresh token reuse detected")
 
 // TokenPair holds both the access JWT and the opaque refresh token.
 type TokenPair struct {
@@ -118,12 +121,17 @@ func (s *AuthService) Refresh(rawToken, jwtSecret string, jwtExpiry time.Duratio
 		return nil, ErrInvalidRefreshToken
 	}
 
-	if err := s.refreshRepo.DeleteByTokenHash(tokenHash); err != nil {
-		return nil, err
+	if stored.RevokedAt != nil {
+		_ = s.refreshRepo.DeleteAllByUserID(stored.UserID)
+		return nil, ErrRefreshTokenReused
 	}
 
 	if time.Now().After(stored.ExpiresAt) {
 		return nil, ErrInvalidRefreshToken
+	}
+
+	if err := s.refreshRepo.Revoke(tokenHash); err != nil {
+		return nil, err
 	}
 
 	return s.issueTokenPair(stored.UserID, jwtSecret, jwtExpiry, refreshExpiry)
