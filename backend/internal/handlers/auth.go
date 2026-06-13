@@ -156,6 +156,10 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 	pair, err := h.svc.Refresh(cookie.Value, h.jwtSecret, h.jwtExpiry, h.refreshExpiry)
 	if err != nil {
 		h.clearTokenCookies(w)
+		if errors.Is(err, services.ErrRefreshTokenReused) {
+			response.Error(w, http.StatusUnauthorized, "session revoked, please log in again")
+			return
+		}
 		response.Error(w, http.StatusUnauthorized, err.Error())
 		return
 	}
