@@ -30,6 +30,7 @@ A minimalist full‑stack task manager with user authentication, priorities, dea
 User Management
 - Secure auth: registration, login, logout
 - Refresh token rotation: automatic access token renewal via HTTP-only cookies
+- Token reuse detection: revokes all sessions if a rotated refresh token is replayed
 - Account deletion: cascade remove with all tasks
 
 Task Management
