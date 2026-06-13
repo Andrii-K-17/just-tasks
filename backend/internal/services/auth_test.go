@@ -15,9 +15,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const testSecret = "test_secret"
-const testExpiry = time.Hour
-const testRefreshExpiry = 7 * 24 * time.Hour
+const (
+	testSecret        = "test_secret"
+	testExpiry        = time.Hour
+	testRefreshExpiry = 7 * 24 * time.Hour
+)
 
 func TestAuthService_Register_Success(t *testing.T) {
 	userRepo := new(mocks.UserRepository)
@@ -125,7 +127,7 @@ func TestAuthService_Refresh_Success(t *testing.T) {
 	newToken := &models.RefreshToken{ID: 2, UserID: 1, ExpiresAt: time.Now().Add(testRefreshExpiry)}
 
 	refreshRepo.On("FindByTokenHash", tokenHash).Return(storedToken, nil)
-	refreshRepo.On("DeleteByTokenHash", tokenHash).Return(nil)
+	refreshRepo.On("Revoke", tokenHash).Return(nil)
 	refreshRepo.On("Create", 1, mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).
 		Return(newToken, nil)
 
@@ -152,7 +154,6 @@ func TestAuthService_Refresh_Expired(t *testing.T) {
 	}
 
 	refreshRepo.On("FindByTokenHash", tokenHash).Return(storedToken, nil)
-	refreshRepo.On("DeleteByTokenHash", tokenHash).Return(nil)
 
 	_, err := svc.Refresh(rawToken, testSecret, testExpiry, testRefreshExpiry)
 
@@ -173,6 +174,31 @@ func TestAuthService_Refresh_InvalidToken(t *testing.T) {
 	_, err := svc.Refresh(rawToken, testSecret, testExpiry, testRefreshExpiry)
 
 	assert.ErrorIs(t, err, services.ErrInvalidRefreshToken)
+	refreshRepo.AssertExpectations(t)
+}
+
+func TestAuthService_Refresh_ReuseDetected(t *testing.T) {
+	userRepo := new(mocks.UserRepository)
+	refreshRepo := new(mocks.RefreshTokenRepository)
+	svc := services.NewAuthService(userRepo, refreshRepo)
+
+	rawToken := "reused_token"
+	tokenHash := services.HashRefreshToken(rawToken)
+	revokedAt := time.Now().Add(-time.Minute)
+	storedToken := &models.RefreshToken{
+		ID:        1,
+		UserID:    1,
+		TokenHash: tokenHash,
+		ExpiresAt: time.Now().Add(time.Hour),
+		RevokedAt: &revokedAt,
+	}
+
+	refreshRepo.On("FindByTokenHash", tokenHash).Return(storedToken, nil)
+	refreshRepo.On("DeleteAllByUserID", 1).Return(nil)
+
+	_, err := svc.Refresh(rawToken, testSecret, testExpiry, testRefreshExpiry)
+
+	assert.ErrorIs(t, err, services.ErrRefreshTokenReused)
 	refreshRepo.AssertExpectations(t)
 }
 
